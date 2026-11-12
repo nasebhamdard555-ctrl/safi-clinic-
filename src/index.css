@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+}
+
+.font-serif-classic {
+  font-family: 'Cinzel', serif;
+}
+
+.font-serif-editorial {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+/* Custom Gold Shimmer Gradient */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #f5e4b8 0%, #d4af37 50%, #aa8222 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-border-glow {
+  box-shadow: 0 0 20px -3px rgba(212, 175, 55, 0.18);
+}
+
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #d4af37 0%, #c5a059 50%, #9e7d32 100%);
+}
+
+.gold-gradient-subtle {
+  background: linear-gradient(180deg, rgba(212, 175, 55, 0.12) 0%, rgba(212, 175, 55, 0.02) 100%);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #06120d;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1b3b2f;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c5a059;
+}
+
