@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { SYMPTOM_MATCHES, HERBAL_PRODUCTS, CONSULTATION_SERVICES, CLINIC_PROFILE } from '../data/clinicData';
 import { HerbalProduct } from '../types/clinic';
+import { BotanicalImage } from '../components/BotanicalImage';
 
 interface SymptomMatcherPageProps {
   onOpenBooking: (serviceId?: string) => void;
@@ -123,7 +124,7 @@ export const SymptomMatcherPage: React.FC<SymptomMatcherPageProps> = ({
             <span className="text-[#155e75]">·</span>
             <span className="flex items-center gap-1.5 text-amber-300">
               <Activity className="w-4 h-4 text-[#fde047]" />
-              Formulated by Dr. Hakim Safiullah Safi
+              Formulated by Dr. Hafizullah Safi
             </span>
           </div>
         </div>
@@ -257,7 +258,7 @@ export const SymptomMatcherPage: React.FC<SymptomMatcherPageProps> = ({
                   className="rounded-2xl bg-[#041d24] border border-[#0e4856] hover:border-[#22d3ee]/60 transition-all p-5 flex flex-col justify-between space-y-4 shadow-lg group"
                 >
                   <div className="flex items-start gap-3.5">
-                    <img
+                    <BotanicalImage
                       src={prod.image}
                       alt={prod.name}
                       className="w-16 h-16 rounded-xl object-cover border border-[#0e4856] group-hover:scale-105 transition-transform shrink-0"
@@ -352,7 +353,7 @@ export const SymptomMatcherPage: React.FC<SymptomMatcherPageProps> = ({
             Need a Professional Clinical Assessment?
           </h2>
           <p className="text-xs sm:text-sm text-[#94a3b8] max-w-xl mx-auto">
-            Book an in-person diagnostic evaluation with Dr. Hakim Safiullah Safi in Kabul, or reserve a comprehensive telehealth consultation.
+            Book an in-person diagnostic evaluation with Dr. Hafizullah Safi at Main Airport Road, Charahi Shaheed in Kabul, or schedule a telehealth visit.
           </p>
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button

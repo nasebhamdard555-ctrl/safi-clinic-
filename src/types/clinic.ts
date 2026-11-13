@@ -22,11 +22,29 @@ export interface ConsultationService {
   category: 'General' | 'Chronic Care' | 'Vitality' | 'Specialized';
 }
 
+export type OfficialProductCategory =
+  | "Women's Health & Hormonal Wellness"
+  | 'Male Wellness & Fertility'
+  | 'Digestive & Gastrointestinal Wellness'
+  | 'Stress, Sleep & Neurological Wellness'
+  | 'Bone, Joint & Pain Management'
+  | 'Kidney & Urinary Wellness'
+  | 'Cardiometabolic Wellness'
+  | 'Liver & Detox Wellness'
+  | 'Immunity & General Wellness';
+
+export type LegacyProductCategory =
+  | 'Tinctures & Tonics'
+  | 'Herbal Teas'
+  | 'Healing Salves'
+  | 'Capsules & Extracts'
+  | 'Resins';
+
 export interface HerbalProduct {
   id: string;
   name: string;
   subtitle: string;
-  category: 'Tinctures & Tonics' | 'Herbal Teas' | 'Healing Salves' | 'Capsules & Extracts' | 'Resins';
+  category: OfficialProductCategory | LegacyProductCategory;
   price: number;
   originalPrice?: number;
   rating: number;
@@ -123,15 +141,32 @@ export interface SymptomMatch {
 
 export interface ClinicOfficialProfile {
   name: string;
+  pashtoName: string;
+  persianName: string;
+  companyName: string;
+  companySubtitle: string;
+  foundedDate: string;
+  founder: {
+    name: string;
+    title: string;
+    location: string;
+    photo: string;
+    bio: string;
+  };
+  clinicAddress: string;
+  registeredOffice: string;
   tagline: string;
   facilityType: string;
   country: string;
   city: string;
   field: string;
   website: string;
+  secondaryWebsite: string;
   email: string;
+  secondaryEmail: string;
   phone: string;
   formattedPhone: string;
+  hoursPolicy: string;
   faithAndHealing: {
     arabic: string;
     pashto: string;
@@ -142,6 +177,7 @@ export interface ClinicOfficialProfile {
   vision: string;
   mission: string[];
   systemsOfMedicine: {
+    code?: string;
     title: string;
     tagline: string;
     principles: string[];
@@ -153,6 +189,7 @@ export interface ClinicOfficialProfile {
   }[];
   whoAlignment: string[];
   scopeOfServices: {
+    code?: string;
     title: string;
     category: string;
     description: string;

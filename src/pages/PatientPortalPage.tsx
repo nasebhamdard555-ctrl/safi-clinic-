@@ -263,7 +263,7 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
 
               <div className="space-y-4">
                 <p className="text-xs text-[#a3b8cd] leading-relaxed">
-                  Sign in with your verified account to review your full clinical dossiers, track daily botanical regimens prescribed by Dr. Naseb Hamdard and Hakim Safiullah Safi, and manage dispensary refills.
+                  Sign in with your verified account to review your full clinical dossiers, track daily botanical regimens prescribed by Dr. Hafizullah Safi and the Safi Clinical Care Team, and manage dispensary refills.
                 </p>
 
                 <div className="p-4 rounded-xl bg-[#061523] border border-[#1b3552] space-y-2.5 text-xs text-[#8da3bb]">
@@ -572,7 +572,7 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                       {
                         id: 1,
                         protocolName: 'Royal Black Seed & Honey Respiratory Shield',
-                        prescribingDoctor: 'Dr. Hakim Safiullah Safi',
+                        prescribingDoctor: 'Dr. Hafizullah Safi',
                         mizajTarget: 'Warm & Moist (Dam) · Constitutional Metabolic Warmth',
                         primaryHerbs: 'Cold-Pressed Nigella Sativa (2.8% TQ), Raw Sidr Mountain Honey, Cardamom',
                         formulation: 'Safi Royal Black Seed Elixir (100ml)',
@@ -587,7 +587,7 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                       {
                         id: 2,
                         protocolName: 'Enteric Mucilage & Gastric Restoration',
-                        prescribingDoctor: 'Dr. Naseb Hamdard',
+                        prescribingDoctor: 'Safi Clinical Care Team',
                         mizajTarget: 'Cooling & Hydrating · Calming Excess Heat (Safra)',
                         primaryHerbs: 'Marshmallow Root (Althaea), Egyptian Chamomile, Fennel Seed, DGL Licorice',
                         formulation: 'FloraSoothe Botanical Loose-Leaf Infusion (120g tin)',
@@ -790,7 +790,7 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                       <div className="flex items-center gap-3 shrink-0">
                         <a
                           href={`https://wa.me/93780299299?text=${encodeURIComponent(
-                            `Hello Dr. Naseb / Hakim Safi, I am following up on my appointment ${apt.referenceNumber}.`
+                            `Hello Dr. Hafizullah Safi / Safi Clinical Care Desk, I am following up on my appointment ${apt.referenceNumber}.`
                           )}`}
                           target="_blank"
                           rel="noreferrer"
@@ -1009,7 +1009,7 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                     Need a Constitutional Temperament Re-assessment?
                   </h4>
                   <p className="text-xs text-[#8fa7c0]">
-                    Your pulse and tongue indicators shift during seasonal transitions. Book a 30-minute follow-up with Hakim Safiullah Safi to adjust your formulation.
+                    Your pulse and tongue indicators shift during seasonal transitions. Book a 30-minute follow-up with Dr. Hafizullah Safi to adjust your formulation.
                   </p>
                 </div>
 

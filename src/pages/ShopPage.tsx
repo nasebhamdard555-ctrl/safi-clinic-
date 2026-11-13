@@ -1,17 +1,15 @@
 import React from 'react';
 import {
-  ShoppingBag,
-  Sparkles,
   ShieldCheck,
   Truck,
   Droplets,
   Award,
-  CheckCircle2,
   Calendar,
-  HelpCircle,
+  Tag,
 } from 'lucide-react';
 import { HerbalShop } from '../components/HerbalShop';
 import { HerbalProduct } from '../types/clinic';
+import { CLINIC_PROFILE } from '../data/clinicData';
 
 interface ShopPageProps {
   onAddToCart: (product: HerbalProduct, quantity?: number) => void;
@@ -23,133 +21,126 @@ export const ShopPage: React.FC<ShopPageProps> = ({
   onOpenBooking,
 }) => {
   return (
-    <div className="pt-28 lg:pt-36 pb-20 min-h-screen bg-[#021810] text-[#f5f3ec] relative selection:bg-[#facc15] selection:text-black">
-      {/* Page Ambient Lustrous Malachite & Crown Gold Aura */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[550px] bg-gradient-to-b from-emerald-500/25 via-green-900/15 to-transparent blur-[150px] pointer-events-none -z-10" />
+    <div className="pt-28 lg:pt-36 pb-20 min-h-screen bg-[#F3ECE3] text-[#211813] selection:bg-[#9E5334] selection:text-[#FAF6F0]">
+      {/* Editorial Header */}
+      <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-10">
+        <div className="text-center max-w-3xl mx-auto space-y-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#9E5334]">
+            {CLINIC_PROFILE.companyName} · Botanical Dispensary
+          </p>
 
-      {/* Header Banner */}
-      <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-8">
-        <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0a1e15] border border-[#d4af37]/40 text-[#d4af37] text-xs font-semibold uppercase tracking-widest shadow-md">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Online Herbal Dispensary</span>
-          </div>
-
-          <h1 className="font-serif-classic text-3xl sm:text-4xl lg:text-5xl font-bold text-[#f5f3ec]">
-            Authentic Botanical Formulations & Natural Remedies
+          <h1 className="font-serif-classic text-3xl sm:text-4xl lg:text-5xl font-bold text-[#211813]">
+            Herbal Formulations & Apothecary
           </h1>
 
-          <p className="text-sm sm:text-base text-[#a6b6ad] leading-relaxed">
-            Every tincture, topical balm, medicinal resin, and botanical tea is compounded in our clinical laboratory from certified organic and wildcrafted herbs.
+          <p className="text-sm sm:text-base text-[#665448] leading-relaxed">
+            Compounded botanical formulations across 9 wellness categories — including Safi Hormone Balance, Safi Chill AF, and Safi Beauty Drops.
           </p>
         </div>
       </section>
 
-      {/* Promo & Guarantees Bar */}
-      <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-12">
+      {/* Concise Dispensary Assurances */}
+      <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 rounded-xl bg-gradient-to-r from-[#0d261a] to-[#07170f] border border-[#d4af37]/40 flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-lg bg-[#d4af37]/20 flex items-center justify-center text-[#d4af37] shrink-0">
+          <div className="p-4 rounded-xl bg-[#FAF6F0] border border-[#E2D7C8] flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-lg bg-[#9E5334]/12 flex items-center justify-center text-[#9E5334] shrink-0">
               <Truck className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-xs font-bold text-[#d4af37] block">Free Express Shipping</span>
-              <p className="text-[11px] text-[#a6b6ad]">On all orders over $60 in amber UV glass</p>
+              <span className="text-xs font-bold text-[#211813] block">Kabul & Dispatch</span>
+              <p className="text-[11px] text-[#665448]">Free shipping over $60 · Clinic pickup on Airport Rd</p>
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-gradient-to-r from-[#0d261a] to-[#07170f] border border-[#d4af37]/40 flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-lg bg-[#d4af37]/20 flex items-center justify-center text-[#d4af37] shrink-0">
-              <Sparkles className="w-5 h-5" />
+          <div className="p-4 rounded-xl bg-[#FAF6F0] border border-[#E2D7C8] flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-lg bg-[#9E5334]/12 flex items-center justify-center text-[#9E5334] shrink-0">
+              <Tag className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-xs font-bold text-[#d4af37] block">Active Promo Codes</span>
-              <p className="text-[11px] text-[#a6b6ad]">
-                Use <code className="text-white font-mono bg-black/40 px-1 rounded">HERBAL10</code> for 10% off
+              <span className="text-xs font-bold text-[#211813] block">Patient Promo Code</span>
+              <p className="text-[11px] text-[#665448]">
+                Apply <code className="text-[#9E5334] font-mono font-bold bg-[#F3ECE3] px-1.5 py-0.5 rounded">HERBAL10</code> for 10% off
               </p>
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-gradient-to-r from-[#0d261a] to-[#07170f] border border-[#d4af37]/40 flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-lg bg-[#d4af37]/20 flex items-center justify-center text-[#d4af37] shrink-0">
+          <div className="p-4 rounded-xl bg-[#FAF6F0] border border-[#E2D7C8] flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-lg bg-[#9E5334]/12 flex items-center justify-center text-[#9E5334] shrink-0">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-xs font-bold text-[#d4af37] block">Lab-Certified Purity</span>
-              <p className="text-[11px] text-[#a6b6ad]">Zero heavy metals, solvent-free cold extraction</p>
+              <span className="text-xs font-bold text-[#211813] block">Verified Botanical Purity</span>
+              <p className="text-[11px] text-[#665448]">Zero heavy metals or synthetic adulterants</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Main Herbal Shop Component */}
-      <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-20">
+      <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-16">
         <HerbalShop onAddToCart={onAddToCart} onOpenBooking={onOpenBooking} />
       </section>
 
-      {/* The Safi Apothecary Quality Standards */}
-      <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-20">
-        <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-[#091a13] to-[#040b07] border border-[#d4af37]/40 shadow-2xl space-y-10">
+      {/* Apothecary Standards */}
+      <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="p-8 sm:p-10 rounded-3xl bg-[#FAF6F0] border border-[#E2D7C8] shadow-sm space-y-8">
           <div className="text-center max-w-2xl mx-auto">
-            <span className="text-xs uppercase tracking-widest text-[#d4af37] font-semibold">
-              Pharmacopeia Standards
+            <span className="text-[11px] uppercase tracking-[0.2em] text-[#9E5334] font-semibold">
+              Preparation Standards
             </span>
-            <h2 className="font-serif-classic text-2xl sm:text-3xl font-bold text-[#f5f3ec] mt-1">
-              How We Formulate Our Botanical Medicines
+            <h2 className="font-serif-classic text-2xl sm:text-3xl font-bold text-[#211813] mt-1">
+              Clean Botanical Extraction & Storage
             </h2>
-            <p className="text-xs sm:text-sm text-[#8da396] mt-2">
-              Unlike mass commercial supplements that rely on chemical synthetics and fillers, every Safi batch adheres to ancient unrefined processing.
-            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-2xl bg-[#081810] border border-[#234b3c] space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[#d4af37]/15 border border-[#d4af37]/40 flex items-center justify-center text-[#d4af37]">
+            <div className="p-5 rounded-2xl bg-[#F3ECE3]/70 border border-[#E2D7C8] space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-[#9E5334] text-[#FAF6F0] flex items-center justify-center">
                 <Droplets className="w-5 h-5" />
               </div>
-              <h3 className="font-serif-classic font-bold text-base text-[#f5f3ec]">
-                Slow Artisan Maceration
+              <h3 className="font-serif-classic font-bold text-base text-[#211813]">
+                Verified Sourcing
               </h3>
-              <p className="text-xs text-[#a6b6ad] leading-relaxed">
-                Tinctures are extracted over 6 to 8 weeks in dark glass demijohns, allowing the full phytochemical spectrum of volatile oils, flavonoids, and bitter glycosides to harmonize.
+              <p className="text-xs text-[#665448] leading-relaxed">
+                Botanical extracts, capsules, and oils are sourced and bottled under clean, inspected dispensary standards.
               </p>
             </div>
 
-            <div className="p-6 rounded-2xl bg-[#081810] border border-[#234b3c] space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[#d4af37]/15 border border-[#d4af37]/40 flex items-center justify-center text-[#d4af37]">
+            <div className="p-5 rounded-2xl bg-[#F3ECE3]/70 border border-[#E2D7C8] space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-[#9E5334] text-[#FAF6F0] flex items-center justify-center">
                 <ShieldCheck className="w-5 h-5" />
               </div>
-              <h3 className="font-serif-classic font-bold text-base text-[#f5f3ec]">
-                ICP-MS Heavy Metal Testing
+              <h3 className="font-serif-classic font-bold text-base text-[#211813]">
+                Transparent Labeling
               </h3>
-              <p className="text-xs text-[#a6b6ad] leading-relaxed">
-                Every shipment of wildcrafted Himalayan Shilajit, Black Seed, and Frankincense resin is tested down to parts-per-billion for lead, arsenic, cadmium, and mercury.
+              <p className="text-xs text-[#665448] leading-relaxed">
+                Full botanical nomenclature, conservative dosing instructions, and clear clinical contraindication notes.
               </p>
             </div>
 
-            <div className="p-6 rounded-2xl bg-[#081810] border border-[#234b3c] space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[#d4af37]/15 border border-[#d4af37]/40 flex items-center justify-center text-[#d4af37]">
+            <div className="p-5 rounded-2xl bg-[#F3ECE3]/70 border border-[#E2D7C8] space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-[#9E5334] text-[#FAF6F0] flex items-center justify-center">
                 <Award className="w-5 h-5" />
               </div>
-              <h3 className="font-serif-classic font-bold text-base text-[#f5f3ec]">
-                Biophotonic Amber Packaging
+              <h3 className="font-serif-classic font-bold text-base text-[#211813]">
+                Amber UV Packaging
               </h3>
-              <p className="text-xs text-[#a6b6ad] leading-relaxed">
-                We store all preparations in European Miron and amber glass bottles to shield fragile botanical actives from harmful UV light degradation without chemical preservatives.
+              <p className="text-xs text-[#665448] leading-relaxed">
+                Protected in UV-shielded glass and sealed apothecary jars without harsh chemical preservatives.
               </p>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-[#1b3b2f] flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-            <p className="text-xs text-[#a6b6ad]">
-              Unsure which remedy is suitable for your condition? Consult our clinical herbalists directly.
+          <div className="pt-4 border-t border-[#E2D7C8] flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+            <p className="text-xs text-[#665448]">
+              Unsure which category fits your Mizaj temperament? Speak directly with Dr. Hafizullah Safi’s clinic team.
             </p>
             <button
               onClick={onOpenBooking}
-              className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#aa8222] text-black font-semibold text-xs tracking-wide shadow-md hover:brightness-110 transition-all flex items-center gap-1.5 cursor-pointer"
+              className="px-5 py-2.5 rounded-lg bg-[#9E5334] hover:bg-[#824127] text-[#FAF6F0] font-semibold text-xs tracking-wide transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <Calendar className="w-3.5 h-3.5" />
-              <span>Book Formulation Consultation</span>
+              <span>Book Consultation</span>
             </button>
           </div>
         </div>

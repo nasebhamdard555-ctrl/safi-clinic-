@@ -101,15 +101,51 @@ export async function updateClinicSettings(data: {
 
 export async function ensureSeededMedicines() {
   const existing = await db.select().from(medicines).orderBy(medicines.id);
-  if (existing.length > 0) return existing;
+  const existingIds = new Set(existing.map((m) => m.productId));
 
   const seedCatalog = [
+    {
+      productId: 'prod-hormone-balance',
+      sku: 'SNC-HRM-060',
+      barcodeQr: 'MED-HORMONE-BALANCE',
+      name: 'Safi Hormone Balance',
+      category: "Women's Health & Hormonal Wellness",
+      unitPrice: 42.0,
+      cogsPrice: 14.5,
+      stockQuantity: 48,
+      lowStockThreshold: 20,
+      status: 'In Stock',
+    },
+    {
+      productId: 'prod-chill-af',
+      sku: 'SNC-CHL-050',
+      barcodeQr: 'MED-CHILL-AF',
+      name: 'Safi Chill AF',
+      category: 'Stress, Sleep & Neurological Wellness',
+      unitPrice: 39.0,
+      cogsPrice: 13.0,
+      stockQuantity: 52,
+      lowStockThreshold: 20,
+      status: 'In Stock',
+    },
+    {
+      productId: 'prod-beauty-drops',
+      sku: 'SNC-BTY-050',
+      barcodeQr: 'MED-BEAUTY-DROPS',
+      name: 'Safi Beauty Drops',
+      category: 'Immunity & General Wellness',
+      unitPrice: 45.0,
+      cogsPrice: 15.0,
+      stockQuantity: 36,
+      lowStockThreshold: 20,
+      status: 'In Stock',
+    },
     {
       productId: 'prod-black-seed',
       sku: 'SNC-BLK-100',
       barcodeQr: 'MED-BLACK-SEED',
       name: 'Safi Royal Black Seed Elixir',
-      category: 'Tinctures & Tonics',
+      category: 'Cardiometabolic Wellness',
       unitPrice: 38.0,
       cogsPrice: 13.5,
       stockQuantity: 64,
@@ -121,7 +157,7 @@ export async function ensureSeededMedicines() {
       sku: 'SNC-ASH-060',
       barcodeQr: 'MED-ASHWAGANDHA',
       name: 'Safi KSM-66 & Saffron Vitality Tonic',
-      category: 'Tinctures & Tonics',
+      category: 'Stress, Sleep & Neurological Wellness',
       unitPrice: 44.0,
       cogsPrice: 16.0,
       stockQuantity: 42,
@@ -133,7 +169,7 @@ export async function ensureSeededMedicines() {
       sku: 'SNC-JNT-080',
       barcodeQr: 'MED-JOINT-BALM',
       name: 'Joint-Flex Boswellia & Turmeric Balm',
-      category: 'Healing Salves',
+      category: 'Bone, Joint & Pain Management',
       unitPrice: 36.0,
       cogsPrice: 12.0,
       stockQuantity: 38,
@@ -145,10 +181,10 @@ export async function ensureSeededMedicines() {
       sku: 'SNC-SHL-030',
       barcodeQr: 'MED-SHILAJIT-GOLD',
       name: 'Pure Himalayan Shilajit Gold Resin',
-      category: 'Resins',
+      category: 'Male Wellness & Fertility',
       unitPrice: 58.0,
       cogsPrice: 22.0,
-      stockQuantity: 12, // Intentionally below threshold (< 20) to demonstrate proactive Restock Alert
+      stockQuantity: 12,
       lowStockThreshold: 20,
       status: 'Low Stock',
     },
@@ -157,10 +193,34 @@ export async function ensureSeededMedicines() {
       sku: 'SNC-GUT-120',
       barcodeQr: 'MED-FLORA-TEA',
       name: 'FloraSoothe Digestive Botanical Tea',
-      category: 'Herbal Teas',
+      category: 'Digestive & Gastrointestinal Wellness',
       unitPrice: 26.0,
       cogsPrice: 8.5,
       stockQuantity: 55,
+      lowStockThreshold: 20,
+      status: 'In Stock',
+    },
+    {
+      productId: 'prod-renal-drops',
+      sku: 'SNC-RNL-060',
+      barcodeQr: 'MED-URICLEANSE',
+      name: 'Safi Uricleanse Renal & Bladder Drops',
+      category: 'Kidney & Urinary Wellness',
+      unitPrice: 34.0,
+      cogsPrice: 11.5,
+      stockQuantity: 30,
+      lowStockThreshold: 20,
+      status: 'In Stock',
+    },
+    {
+      productId: 'prod-liver-tonic',
+      sku: 'SNC-LVR-100',
+      barcodeQr: 'MED-HEPATOX',
+      name: 'Safi Hepatox Liver & Bile Bitter Tonic',
+      category: 'Liver & Detox Wellness',
+      unitPrice: 37.0,
+      cogsPrice: 12.5,
+      stockQuantity: 28,
       lowStockThreshold: 20,
       status: 'In Stock',
     },
@@ -169,10 +229,10 @@ export async function ensureSeededMedicines() {
       sku: 'SNC-BRN-200',
       barcodeQr: 'MED-BRONCHO-SYRUP',
       name: 'Broncho-Vital Lung & Throat Elixir',
-      category: 'Tinctures & Tonics',
+      category: 'Immunity & General Wellness',
       unitPrice: 32.0,
       cogsPrice: 11.0,
-      stockQuantity: 14, // Intentionally below threshold (< 20)
+      stockQuantity: 14,
       lowStockThreshold: 20,
       status: 'Low Stock',
     },
@@ -180,8 +240,8 @@ export async function ensureSeededMedicines() {
       productId: 'prod-sleep-drops',
       sku: 'SNC-SLP-050',
       barcodeQr: 'MED-SOMNA-CALM',
-      name: 'Somna-Calm Valerian & Blue Skullcap Drops',
-      category: 'Tinctures & Tonics',
+      name: 'Somna-Calm Valerian & Skullcap Drops',
+      category: 'Stress, Sleep & Neurological Wellness',
       unitPrice: 29.0,
       cogsPrice: 10.0,
       stockQuantity: 31,
@@ -193,18 +253,20 @@ export async function ensureSeededMedicines() {
       sku: 'SNC-NEM-060',
       barcodeQr: 'MED-NEEM-SALVE',
       name: 'Neem & Calendula Restorative Skin Salve',
-      category: 'Healing Salves',
+      category: 'Immunity & General Wellness',
       unitPrice: 28.0,
       cogsPrice: 9.5,
-      stockQuantity: 0, // Demonstrates Out of Stock indicator + restock flow
+      stockQuantity: 0,
       lowStockThreshold: 20,
       status: 'Out of Stock',
     },
   ];
 
-  const inserted = await db.insert(medicines).values(seedCatalog).returning();
+  const missing = seedCatalog.filter((item) => !existingIds.has(item.productId));
+  if (missing.length === 0) return existing;
 
-  // Seed initial alerts for low/out-of-stock items
+  const inserted = await db.insert(medicines).values(missing).returning();
+
   const settings = await getOrSeedClinicSettings();
   for (const med of inserted) {
     if (med.stockQuantity < med.lowStockThreshold) {
@@ -219,7 +281,7 @@ export async function ensureSeededMedicines() {
     }
   }
 
-  return inserted;
+  return [...existing, ...inserted];
 }
 
 export async function ensureSeededPatientsAndLedger() {
@@ -305,7 +367,7 @@ export async function ensureSeededPatientsAndLedger() {
         type: 'consultation',
         patientId: p0?.id || null,
         patientName: p0?.fullName || 'Hajji Ahmadullah Stanikzai',
-        description: 'Chronic Pain, Joints & Arthritis Therapy (Dr. Naseb Hamdard)',
+        description: 'Chronic Pain, Joints & Arthritis Therapy (Dr. Hafizullah Safi)',
         grossAmount: 130,
         cogsAmount: 0,
         overheadAmount: 19.5,
@@ -335,7 +397,7 @@ export async function ensureSeededPatientsAndLedger() {
         type: 'consultation',
         patientId: p1?.id || null,
         patientName: p1?.fullName || 'Soraya Karimi',
-        description: "Women's Endocrine & Hormonal Balance Protocol (Dr. Amina Vance)",
+        description: 'Hormonal & Reproductive Health Support (Dr. Hafizullah Safi)',
         grossAmount: 145,
         cogsAmount: 0,
         overheadAmount: 21.75,
@@ -361,7 +423,7 @@ export async function ensureSeededPatientsAndLedger() {
         type: 'consultation',
         patientId: p2?.id || null,
         patientName: p2?.fullName || 'Mirwais Rahimi',
-        description: 'Hijama (Wet Cupping) & Deep Lymphatic Detox (Dr. Hakim Safi)',
+        description: 'Hijama (Wet Cupping) & Traditional Acupuncture (Dr. Hafizullah Safi)',
         grossAmount: 150,
         cogsAmount: 8,
         overheadAmount: 22.5,
@@ -387,7 +449,7 @@ export async function ensureSeededPatientsAndLedger() {
         type: 'consultation',
         patientId: p3?.id || null,
         patientName: p3?.fullName || 'Fatima Al-Zahra',
-        description: 'Herbal Dermatology & Eczema Protocol (Dr. Layla Kazemi)',
+        description: 'Therapeutic Skin & Hair Care Consultation (Safi Clinical Care Team)',
         grossAmount: 120,
         cogsAmount: 0,
         overheadAmount: 18,
@@ -689,7 +751,7 @@ export async function checkInPatientTriage(data: {
   if (!patientRow) throw new Error('Patient QR profile not found');
 
   const fee = Number(data.consultationFee ?? 140);
-  const practitioner = data.practitionerName || 'Dr. Naseb Hamdard';
+  const practitioner = data.practitionerName || 'Dr. Hafizullah Safi';
   const visitType = data.visitType || 'QR Triage In-Clinic Arrival';
 
   const visitInserted = await db
@@ -1003,7 +1065,7 @@ export async function seedInitialPatientProtocolsIfEmpty(userUid: string, patien
     const p1 = await createProtocol({
       userUid,
       protocolName: 'Royal Black Seed & Honey Respiratory Shield',
-      prescribingDoctor: 'Dr. Hakim Safiullah Safi',
+      prescribingDoctor: 'Dr. Hafizullah Safi',
       mizajTarget: 'Warm & Moist (Dam) · Constitutional Metabolic Warmth',
       primaryHerbs: 'Cold-Pressed Nigella Sativa (2.8% Thymoquinone), Raw Sidr Mountain Honey, Cardamom',
       formulation: 'Safi Royal Black Seed Elixir (100ml)',
@@ -1019,7 +1081,7 @@ export async function seedInitialPatientProtocolsIfEmpty(userUid: string, patien
     const p2 = await createProtocol({
       userUid,
       protocolName: 'Enteric Mucilage & Gastric Restoration',
-      prescribingDoctor: 'Dr. Naseb Hamdard',
+      prescribingDoctor: 'Dr. Hafizullah Safi',
       mizajTarget: 'Cooling & Hydrating · Calming Excess Heat (Safra)',
       primaryHerbs: 'Marshmallow Root (Althaea), Egyptian Chamomile, Fennel Seed, DGL Licorice',
       formulation: 'FloraSoothe Botanical Loose-Leaf Infusion (120g tin)',

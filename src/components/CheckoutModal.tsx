@@ -145,7 +145,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     required
                     value={shippingName}
                     onChange={(e) => setShippingName(e.target.value)}
-                    placeholder="e.g. Eleanor Vance"
+                    placeholder="e.g. Nadia Rahmati"
                     className="w-full px-3.5 py-2 rounded-lg bg-[#06120d] border border-[#1b3b2f] text-xs text-[#f5f3ec] focus:outline-none focus:border-[#d4af37]"
                   />
                 </div>
@@ -158,7 +158,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     required
                     value={shippingEmail}
                     onChange={(e) => setShippingEmail(e.target.value)}
-                    placeholder="e.g. eleanor@example.com"
+                    placeholder="e.g. nadia.rahmati@example.com"
                     className="w-full px-3.5 py-2 rounded-lg bg-[#06120d] border border-[#1b3b2f] text-xs text-[#f5f3ec] focus:outline-none focus:border-[#d4af37]"
                   />
                 </div>

@@ -1,86 +1,88 @@
 import React, { useState } from 'react';
 import {
-  Award,
-  Sparkles,
-  Heart,
   ShieldCheck,
-  CheckCircle,
+  Sparkles,
   Star,
   Quote,
   ChevronDown,
   ChevronUp,
+  MapPin,
 } from 'lucide-react';
-import { PRACTITIONERS, CLINIC_STATS, TESTIMONIALS } from '../data/clinicData';
+import { CLINIC_PROFILE, PRACTITIONERS } from '../data/clinicData';
+import { DETAILED_TESTIMONIALS } from './TestimonialsSection';
+import { BotanicalImage } from './BotanicalImage';
 
 export const ClinicProfile: React.FC = () => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
   const faqs = [
     {
-      q: 'What should I expect during my initial herbal consultation?',
-      a: 'Your consultation begins with a comprehensive diagnostic evaluation: an in-depth review of your medical history, pulse quality, tongue characteristics, and an assessment of your constitutional temperament (Mizaj). Based on this, your practitioner formulates a bespoke herbal treatment protocol.',
+      q: 'What should I expect during my initial consultation?',
+      a: 'Your visit includes a thorough review of your medical history, arterial pulse (Nabz), tongue indicators, and constitutional temperament (Mizaj). Dr. Hafizullah Safi then outlines a supportive herbal and dietary protocol.',
     },
     {
       q: 'Can herbal formulations be taken alongside conventional medications?',
-      a: 'Yes, when properly audited. Our pharmacognosist Tariq Mansoor conducts a strict Herb-Drug Interaction Audit for every patient to guarantee no adverse pharmacokinetic or cytochrome P450 enzyme interactions with your pharmaceuticals.',
+      a: 'Yes, following an herb-medication safety review during your appointment. Our clinical team checks for interactions and keeps clear referral boundaries with conventional doctors.',
     },
     {
-      q: 'How are your herbal medicines and tinctures sourced?',
-      a: 'All our botanicals are either wildcrafted from pristine mountain habitats or sourced directly from certified organic family growers. They undergo independent HPLC laboratory testing to ensure zero heavy metals, pesticide residues, or artificial adulterants.',
+      q: 'What is the clinic walk-in and appointment policy?',
+      a: 'Appointments go first, then walk-ins · Sat–Thu 8:30am – 6:00pm at Main Airport Road, Charahi Shaheed, Kabul.',
     },
     {
-      q: 'Do you offer international shipping and remote consultations?',
-      a: 'Yes. We offer secure Telehealth video consultations to patients globally. Formulations prescribed during telehealth visits are compounded and shipped worldwide with express temperature-controlled courier services.',
+      q: 'How are herbal preparations compounded and verified?',
+      a: 'All botanicals are identified for safety, prepared in small batches without restricted or toxic substances, and stored in light-shielded dispensary glass.',
     },
   ];
 
   return (
-    <section id="about" className="py-20 lg:py-28 bg-[#05110a] relative">
+    <section id="about" className="py-16 lg:py-24 bg-[#111E17] text-[#F4F0E6] relative">
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
         {/* About Header */}
-        <div className="max-w-3xl mx-auto text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0d2319] border border-[#c5a059]/40 text-[#f5e6c8] text-xs font-semibold tracking-wider uppercase mb-3">
-            <Award className="w-3.5 h-3.5 text-[#d4af37]" />
-            <span>The Heritage of Botanical Healing</span>
-          </div>
-          <h2 className="font-serif-classic text-3xl sm:text-4xl lg:text-5xl font-bold text-[#f5f3ec]">
-            The Philosophy of Safi Herbal Clinic
+        <div className="max-w-3xl mx-auto text-center mb-14 space-y-3">
+          <span className="text-xs font-semibold tracking-widest uppercase text-[#D4AF7A] block">
+            Founder &amp; Clinical Philosophy · Est. {CLINIC_PROFILE.foundedDate}
+          </span>
+          <h2 className="font-serif-classic text-3xl sm:text-4xl lg:text-5xl font-bold text-[#F4F0E6]">
+            {CLINIC_PROFILE.companyName}
           </h2>
-          <p className="mt-3 text-base text-[#a6b6ad] leading-relaxed">
-            Where classical Unani-Tibb wisdom converges with modern clinical phytotherapy to awaken the body’s innate regenerative power.
+          <p className="text-sm sm:text-base text-[#C5D1C8] leading-relaxed">
+            Where classical Unani-Tibb wisdom converges with clinical phytotherapy, naturopathy, and supportive traditional acupuncture.
           </p>
         </div>
 
-        {/* Story & Philosophy Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center mb-20">
+        {/* Founder Profile & Story Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center mb-16">
           <div className="lg:col-span-6 space-y-5 text-left">
-            <h3 className="font-serif-classic text-2xl sm:text-3xl font-bold text-[#f5f3ec]">
-              True Healing Addresses the Whole Human Being, Not Just the Symptom
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#D4AF7A] block">
+              {CLINIC_PROFILE.founder.title}
+            </span>
+            <h3 className="font-serif-classic text-2xl sm:text-3xl font-bold text-[#F4F0E6]">
+              {CLINIC_PROFILE.founder.name}
             </h3>
-            <p className="text-sm text-[#b8c9bf] leading-relaxed">
-              Founded in 1998 by Hakim Safiullah Safi, our clinic was created on a single unwavering conviction: nature has provided within the botanical kingdom an antidote and restorative compound for every imbalance known to humanity.
+            <p className="text-sm text-[#D6DFD8] leading-relaxed">
+              {CLINIC_PROFILE.founder.bio}
             </p>
-            <p className="text-sm text-[#b8c9bf] leading-relaxed">
-              While conventional symptom-suppressive pharmaceuticals have their place in acute trauma, chronic diseases require restorative cellular nourishment. By identifying a patient’s constitutional Mizaj (temperament) and analyzing the enteric-nervous axis, we eliminate toxic stagnation, rekindle metabolic fire, and restore harmony.
+            <p className="text-sm text-[#C5D1C8] leading-relaxed">
+              Founded in {CLINIC_PROFILE.foundedDate} in {CLINIC_PROFILE.city}, {CLINIC_PROFILE.country}, {CLINIC_PROFILE.name} emphasizes careful case assessment, patient safety, informed consent, and honest therapeutic boundaries.
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-[#1b3b2f]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-[#263C31]">
               <div className="flex items-start gap-3">
-                <ShieldCheck className="w-5 h-5 text-[#d4af37] shrink-0 mt-0.5" />
+                <MapPin className="w-5 h-5 text-[#D4AF7A] shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-xs font-bold text-[#f5f3ec]">Licensed Dispensary</h4>
-                  <p className="text-[11px] text-[#8da396]">
-                    ISO-accredited cleanroom compounding facility
+                  <h4 className="text-xs font-bold text-[#F4F0E6]">Clinic Address</h4>
+                  <p className="text-[11px] text-[#B8C7BD]">
+                    {CLINIC_PROFILE.clinicAddress}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
-                <Sparkles className="w-5 h-5 text-[#d4af37] shrink-0 mt-0.5" />
+                <ShieldCheck className="w-5 h-5 text-[#D4AF7A] shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-xs font-bold text-[#f5f3ec]">Spagyric Extractions</h4>
-                  <p className="text-[11px] text-[#8da396]">
-                    Full mineral ash and organic alcohol-free tinctures
+                  <h4 className="text-xs font-bold text-[#F4F0E6]">Registered Office</h4>
+                  <p className="text-[11px] text-[#B8C7BD]">
+                    {CLINIC_PROFILE.registeredOffice}
                   </p>
                 </div>
               </div>
@@ -88,74 +90,54 @@ export const ClinicProfile: React.FC = () => {
           </div>
 
           <div className="lg:col-span-6 relative">
-            <div className="relative p-1.5 rounded-2xl bg-gradient-to-tr from-[#d4af37]/60 via-[#1b3b2f] to-[#0a1811] shadow-2xl">
-              <div className="rounded-[14px] overflow-hidden">
-                <img
-                  src="https://images.unsplash.com/photo-1512069772995-ec65ed45afd6?auto=format&fit=crop&w=800&q=80"
-                  alt="Herbal apothecary compounding mortars, raw botanicals and amber tincture jars"
-                  className="w-full h-80 sm:h-96 object-cover object-center"
+            <div className="relative p-2 rounded-2xl bg-[#192B22] border border-[#D4AF7A]/40 shadow-2xl">
+              <div className="rounded-xl overflow-hidden aspect-[4/3] bg-white p-2">
+                <BotanicalImage
+                  src={CLINIC_PROFILE.founder.photo}
+                  alt={CLINIC_PROFILE.founder.name}
+                  className="w-full h-full object-contain"
                 />
+              </div>
+              <div className="mt-3 px-2 pb-1 flex items-center justify-between text-xs">
+                <span className="font-serif-classic font-bold text-[#F4F0E6]">
+                  {CLINIC_PROFILE.founder.name}
+                </span>
+                <span className="text-[#D4AF7A]">{CLINIC_PROFILE.hoursPolicy}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-2xl bg-[#081810] border border-[#1b3b2f] mb-20 shadow-xl">
-          {CLINIC_STATS.map((stat, i) => (
-            <div key={i} className="text-center p-3">
-              <span className="font-serif-classic text-3xl sm:text-4xl font-bold text-[#d4af37] block">
-                {stat.value}
-              </span>
-              <span className="text-xs text-[#a6b6ad] mt-1 block">
-                {stat.label}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Meet the Clinicians */}
-        <div className="mb-20">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <h3 className="font-serif-classic text-2xl sm:text-3xl font-bold text-[#f5f3ec]">
-              Meet Our Master Herbalists
-            </h3>
-            <p className="text-xs sm:text-sm text-[#8da396] mt-2">
-              Decades of rigorous botanical study, clinical practice, and compassionate care.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Practitioners */}
+        <div className="mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {PRACTITIONERS.map((prac) => (
               <div
                 key={prac.id}
-                className="rounded-2xl bg-[#081810] border border-[#1b3b2f] hover:border-[#d4af37]/60 transition-all p-5 flex flex-col justify-between"
+                className="rounded-2xl bg-[#192B22] border border-[#2B4236] hover:border-[#D4AF7A]/60 transition-all p-6 flex flex-col justify-between space-y-4"
               >
-                <div>
-                  <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-[#d4af37] mx-auto mb-4">
-                    <img
-                      src={prac.imageUrl}
-                      alt={prac.name}
-                      className="w-full h-full object-cover"
-                    />
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-xl border border-[#D4AF7A] shrink-0 bg-[#111E17] text-[#D4AF7A] font-serif-classic font-bold text-xl flex items-center justify-center">
+                    {prac.id === 'prac-hafizullah' ? 'HS.' : 'SC.'}
                   </div>
-                  <h4 className="font-serif-classic font-bold text-base text-[#f5f3ec] text-center">
-                    {prac.name}
-                  </h4>
-                  <p className="text-xs text-[#d4af37] text-center font-medium mt-0.5">
-                    {prac.title}
-                  </p>
-                  <p className="text-[11px] text-[#8da396] text-center mt-1">
-                    {prac.degrees}
-                  </p>
-                  <p className="text-xs text-[#b8c9bf] mt-3 line-clamp-3 leading-relaxed">
-                    {prac.bio}
-                  </p>
+                  <div>
+                    <h4 className="font-serif-classic font-bold text-base text-[#F4F0E6]">
+                      {prac.name}
+                    </h4>
+                    <p className="text-xs text-[#D4AF7A] font-medium mt-0.5">
+                      {prac.title}
+                    </p>
+                    <p className="text-[11px] text-[#B8C7BD] mt-0.5">
+                      {prac.degrees}
+                    </p>
+                  </div>
                 </div>
-
-                <div className="mt-4 pt-3 border-t border-[#1b3b2f] flex items-center justify-between text-xs">
-                  <span className="text-[#d4af37] font-bold">★ {prac.rating}</span>
-                  <span className="text-[#8da396]">{prac.experienceYears} Years Exp.</span>
+                <p className="text-xs text-[#D6DFD8] leading-relaxed">
+                  {prac.bio}
+                </p>
+                <div className="pt-3 border-t border-[#2B4236] flex items-center justify-between text-xs">
+                  <span className="text-[#D4AF7A] font-bold">★ {prac.rating}</span>
+                  <span className="text-[#B8C7BD]">{prac.experienceYears} Years Clinical Practice</span>
                 </div>
               </div>
             ))}
@@ -163,40 +145,40 @@ export const ClinicProfile: React.FC = () => {
         </div>
 
         {/* Patient Testimonials */}
-        <div className="mb-20">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs text-[#d4af37] font-semibold uppercase tracking-wider block mb-1">
-              Verified Patient Recovery Stories
+        <div className="mb-16">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <span className="text-xs text-[#D4AF7A] font-semibold uppercase tracking-wider block mb-1">
+              Verified Patient Stories
             </span>
-            <h3 className="font-serif-classic text-2xl sm:text-3xl font-bold text-[#f5f3ec]">
-              Words from Those Restored
+            <h3 className="font-serif-classic text-2xl sm:text-3xl font-bold text-[#F4F0E6]">
+              Words from Our Patients
             </h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {TESTIMONIALS.map((t) => (
+            {DETAILED_TESTIMONIALS.slice(0, 3).map((t) => (
               <div
                 key={t.id}
-                className="p-6 rounded-2xl bg-[#081810] border border-[#1b3b2f] hover:border-[#c5a059]/50 transition-all flex flex-col justify-between"
+                className="p-6 rounded-2xl bg-[#192B22] border border-[#2B4236] hover:border-[#D4AF7A]/50 transition-all flex flex-col justify-between"
               >
                 <div>
-                  <Quote className="w-8 h-8 text-[#d4af37]/40 mb-3" />
-                  <div className="flex items-center gap-1 text-[#d4af37] mb-2">
+                  <Quote className="w-7 h-7 text-[#D4AF7A]/40 mb-3" />
+                  <div className="flex items-center gap-1 text-[#D4AF7A] mb-2">
                     {[...Array(t.rating)].map((_, i) => (
                       <Star key={i} className="w-3.5 h-3.5 fill-current" />
                     ))}
                   </div>
-                  <p className="text-xs sm:text-sm text-[#c9dad0] italic leading-relaxed">
+                  <p className="text-xs sm:text-sm text-[#E4ECE6] italic leading-relaxed">
                     "{t.quote}"
                   </p>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-[#1b3b2f]">
-                  <p className="font-serif-classic font-bold text-sm text-[#f5f3ec]">
+                <div className="mt-5 pt-4 border-t border-[#2B4236]">
+                  <p className="font-serif-classic font-bold text-sm text-[#F4F0E6]">
                     {t.patientName}
                   </p>
-                  <p className="text-[11px] text-[#d4af37]">{t.condition}</p>
-                  <p className="text-[10px] text-[#8da396]">{t.location}</p>
+                  <p className="text-[11px] text-[#D4AF7A]">{t.condition}</p>
+                  <p className="text-[10px] text-[#B8C7BD]">{t.location}</p>
                 </div>
               </div>
             ))}
@@ -206,12 +188,9 @@ export const ClinicProfile: React.FC = () => {
         {/* FAQs Accordion */}
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
-            <h3 className="font-serif-classic text-2xl font-bold text-[#f5f3ec]">
+            <h3 className="font-serif-classic text-2xl font-bold text-[#F4F0E6]">
               Frequently Asked Questions
             </h3>
-            <p className="text-xs text-[#8da396] mt-1">
-              Everything you need to know about our herbal protocols.
-            </p>
           </div>
 
           <div className="space-y-3">
@@ -220,23 +199,23 @@ export const ClinicProfile: React.FC = () => {
               return (
                 <div
                   key={i}
-                  className="rounded-xl bg-[#081810] border border-[#1b3b2f] overflow-hidden transition-colors"
+                  className="rounded-xl bg-[#192B22] border border-[#2B4236] overflow-hidden transition-colors"
                 >
                   <button
                     onClick={() => setOpenFaqIndex(isOpen ? null : i)}
                     className="w-full p-4 text-left flex items-center justify-between gap-4 cursor-pointer"
                   >
-                    <span className="font-semibold text-xs sm:text-sm text-[#f5f3ec]">
+                    <span className="font-semibold text-xs sm:text-sm text-[#F4F0E6]">
                       {faq.q}
                     </span>
                     {isOpen ? (
-                      <ChevronUp className="w-4 h-4 text-[#d4af37] shrink-0" />
+                      <ChevronUp className="w-4 h-4 text-[#D4AF7A] shrink-0" />
                     ) : (
-                      <ChevronDown className="w-4 h-4 text-[#8da396] shrink-0" />
+                      <ChevronDown className="w-4 h-4 text-[#B8C7BD] shrink-0" />
                     )}
                   </button>
                   {isOpen && (
-                    <div className="px-4 pb-4 pt-1 text-xs text-[#a6b6ad] leading-relaxed border-t border-[#1b3b2f]/60 animate-in fade-in">
+                    <div className="px-4 pb-4 pt-2 text-xs text-[#C5D1C8] leading-relaxed border-t border-[#2B4236]">
                       {faq.a}
                     </div>
                   )}

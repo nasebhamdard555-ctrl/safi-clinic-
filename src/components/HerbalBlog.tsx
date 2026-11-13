@@ -298,7 +298,7 @@ export const HerbalBlog: React.FC<HerbalBlogProps> = ({
               <div className="p-6 rounded-2xl bg-gradient-to-br from-[#0c2419] to-[#07150e] border border-[#c5a059]/40 space-y-4">
                 <span className="text-xs font-bold text-[#d4af37] uppercase tracking-wider flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4 text-[#d4af37]" />
-                  Hakim Safi’s Clinical Formulation Recipe
+                  Dr. Hafizullah Safi’s Clinical Formulation Recipe
                 </span>
                 <h3 className="font-serif-classic text-xl font-bold text-[#f5f3ec]">
                   {readingPost.content.remedyRecipe.title}

@@ -21,10 +21,8 @@ interface PatientCrmPanelProps {
 }
 
 const PRACTITIONERS = [
-  'Dr. Naseb Hamdard',
-  'Dr. Hakim Safiullah Safi',
-  'Dr. Amina Vance, ND',
-  'Dr. Layla Kazemi',
+  'Dr. Hafizullah Safi',
+  'Safi Clinical Care Team',
 ];
 
 /**

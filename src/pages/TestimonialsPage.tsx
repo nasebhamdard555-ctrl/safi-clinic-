@@ -36,7 +36,7 @@ export const TestimonialsPage: React.FC<TestimonialsPageProps> = ({
     name: '',
     location: '',
     condition: '',
-    doctor: 'Dr. Hakim Safiullah Safi',
+    doctor: 'Dr. Hafizullah Safi',
     rating: 5,
     story: '',
   });
@@ -64,7 +64,7 @@ export const TestimonialsPage: React.FC<TestimonialsPageProps> = ({
         name: '',
         location: '',
         condition: '',
-        doctor: 'Dr. Hakim Safiullah Safi',
+        doctor: 'Dr. Hafizullah Safi',
         rating: 5,
         story: '',
       });
@@ -239,7 +239,7 @@ export const TestimonialsPage: React.FC<TestimonialsPageProps> = ({
                 Thank You for Sharing Your Experience
               </h3>
               <p className="text-xs text-emerald-200">
-                Your testimonial has been submitted to Dr. Safi's clinical editorial board for review and verification.
+                Your testimonial has been submitted to Dr. Hafizullah Safi's clinical editorial board for review and verification.
               </p>
             </div>
           ) : (
@@ -298,10 +298,8 @@ export const TestimonialsPage: React.FC<TestimonialsPageProps> = ({
                     onChange={(e) => setNewReview({ ...newReview, doctor: e.target.value })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0c0f] border border-[#2a2c35] text-xs text-[#f5f3ec] focus:outline-none focus:border-[#fbbf24]"
                   >
-                    <option value="Dr. Hakim Safiullah Safi">Dr. Hakim Safiullah Safi (Unani Physician)</option>
-                    <option value="Dr. Amina Vance, ND">Dr. Amina Vance, ND (Naturopathic Physician)</option>
-                    <option value="Dr. Naseb Hamdard">Dr. Naseb Hamdard (Phytotherapist & Cupping)</option>
-                    <option value="Dr. Layla Kazemi">Dr. Layla Kazemi (Clinical Herbal Pharmacognosist)</option>
+                    <option value="Dr. Hafizullah Safi">Dr. Hafizullah Safi (Founder &amp; Lead Practitioner)</option>
+                    <option value="Safi Clinical Care Team">Safi Clinical Care Team (Unani, Phytotherapy &amp; Acupuncture)</option>
                   </select>
                 </div>
               </div>
