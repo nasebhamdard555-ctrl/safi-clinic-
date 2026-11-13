@@ -1,55 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
-@layer base {
-  html {
-    scroll-behavior: smooth;
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+:root {
+  --bg-parchment: #F6F3EC;
+  --bg-stone: #ECE8DF;
+  --ink-deep: #121E17;
+  --ink-muted: #545E56;
+  --accent-forest: #1B3B2B;
+  --accent-brass: #9C6B3B;
+  --hairline: rgba(18, 30, 23, 0.12);
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--bg-parchment);
+  color: var(--ink-deep);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: var(--bg-parchment);
+  color: var(--ink-deep);
+  overflow-x: hidden;
+}
+
+/* Editorial Serif Headings */
+.font-editorial {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.font-mono-code {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Subtle Film Grain Overlay to Remove Flat AI Look */
+.bg-grain {
+  background-image: radial-gradient(rgba(18, 30, 23, 0.045) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Buttery Smooth Reveal & Hover Keyframes */
+@keyframes fadeUpSmooth {
+  0% {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-.font-serif-classic {
-  font-family: 'Cinzel', serif;
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
-.font-serif-editorial {
-  font-family: 'Playfair Display', Georgia, serif;
+.animate-fade-up {
+  animation: fadeUpSmooth 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* Custom Gold Shimmer Gradient */
-.gold-gradient-text {
-  background: linear-gradient(135deg, #f5e4b8 0%, #d4af37 50%, #aa8222 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.animate-fade-up-delay-1 {
+  opacity: 0;
+  animation: fadeUpSmooth 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.12s forwards;
 }
 
-.gold-border-glow {
-  box-shadow: 0 0 20px -3px rgba(212, 175, 55, 0.18);
+.animate-fade-up-delay-2 {
+  opacity: 0;
+  animation: fadeUpSmooth 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.24s forwards;
 }
 
-.gold-gradient-bg {
-  background: linear-gradient(135deg, #d4af37 0%, #c5a059 50%, #9e7d32 100%);
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marqueeScroll 32s linear infinite;
 }
 
-.gold-gradient-subtle {
-  background: linear-gradient(180deg, rgba(212, 175, 55, 0.12) 0%, rgba(212, 175, 55, 0.02) 100%);
+.animate-marquee:hover {
+  animation-play-state: paused;
 }
 
-/* Custom Scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Editorial Hairline Card & Row Transitions */
+.editorial-row {
+  border-bottom: 1px solid var(--hairline);
+  transition: background-color 0.35s cubic-bezier(0.22, 1, 0.36, 1), padding-left 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-::-webkit-scrollbar-track {
-  background: #06120d;
+.editorial-row:hover {
+  background-color: rgba(27, 59, 43, 0.04);
+  padding-left: 0.75rem;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #1b3b2f;
-  border-radius: 4px;
+.arrow-glide {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #c5a059;
+.group:hover .arrow-glide {
+  transform: translateX(5px);
 }
-
