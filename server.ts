@@ -36,6 +36,22 @@ import {
   AnalyticsPeriod,
   calculatePeriodFinancialSummary,
 } from './src/utils/clinicLogic.ts';
+import {
+  getChartOfAccountsWithBalances,
+  createGlAccount,
+  getJournalEntriesWithLines,
+  postBalancedJournalEntry,
+  getArInvoicesWithAging,
+  createArInvoice,
+  receiveArInvoicePayment,
+  getVendorsAndBillsWithAging,
+  createVendorRecord,
+  createApBill,
+  payApBill,
+  getBankRegisterAndReconciliation,
+  completeBankReconciliation,
+  getMoaFinancialReports,
+} from './src/db/accountingQueries.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -299,6 +315,174 @@ app.get('/api/analytics/summary', async (req, res) => {
   } catch (err: any) {
     console.error('Error in GET /api/analytics/summary:', err);
     res.status(500).json({ error: err.message || 'Failed to compute analytics summary' });
+  }
+});
+
+// ============================================================================
+// MICROSOFT OFFICE ACCOUNTING 2009 (MOA 2009) DOUBLE-ENTRY API ROUTES
+// ============================================================================
+
+app.get('/api/accounting/coa', async (_req, res) => {
+  try {
+    const accounts = await getChartOfAccountsWithBalances();
+    res.json({ success: true, accounts });
+  } catch (err: any) {
+    console.error('Error in GET /api/accounting/coa:', err);
+    res.status(500).json({ error: err.message || 'Failed to load Chart of Accounts' });
+  }
+});
+
+app.post('/api/accounting/coa', async (req, res) => {
+  try {
+    const account = await createGlAccount(req.body);
+    res.json({ success: true, account });
+  } catch (err: any) {
+    console.error('Error in POST /api/accounting/coa:', err);
+    res.status(400).json({ error: err.message || 'Failed to create GL Account' });
+  }
+});
+
+app.get('/api/accounting/journals', async (_req, res) => {
+  try {
+    const entries = await getJournalEntriesWithLines(80);
+    res.json({ success: true, entries });
+  } catch (err: any) {
+    console.error('Error in GET /api/accounting/journals:', err);
+    res.status(500).json({ error: err.message || 'Failed to load journal entries' });
+  }
+});
+
+app.post('/api/accounting/journals', async (req, res) => {
+  try {
+    const result = await postBalancedJournalEntry({
+      entryDate: req.body.entryDate,
+      memo: req.body.memo || 'Manual General Journal Entry',
+      sourceModule: 'General Journal',
+      lines: req.body.lines || [],
+    });
+    res.json({ success: true, ...result });
+  } catch (err: any) {
+    console.error('Error in POST /api/accounting/journals:', err);
+    res.status(400).json({ error: err.message || 'Journal entry rejected' });
+  }
+});
+
+app.get('/api/accounting/invoices', async (_req, res) => {
+  try {
+    const data = await getArInvoicesWithAging();
+    res.json({ success: true, ...data });
+  } catch (err: any) {
+    console.error('Error in GET /api/accounting/invoices:', err);
+    res.status(500).json({ error: err.message || 'Failed to load A/R invoices' });
+  }
+});
+
+app.post('/api/accounting/invoices', async (req, res) => {
+  try {
+    const invoice = await createArInvoice(req.body);
+    res.json({ success: true, invoice });
+  } catch (err: any) {
+    console.error('Error in POST /api/accounting/invoices:', err);
+    res.status(400).json({ error: err.message || 'Failed to create invoice' });
+  }
+});
+
+app.post('/api/accounting/invoices/:id/pay', async (req, res) => {
+  try {
+    const invoiceId = parseInt(req.params.id, 10);
+    const amount = Number(req.body.amount);
+    const depositAccountNumber = req.body.depositAccountNumber || '1020';
+    const updated = await receiveArInvoicePayment(invoiceId, amount, depositAccountNumber);
+    res.json({ success: true, invoice: updated });
+  } catch (err: any) {
+    console.error('Error in POST /api/accounting/invoices/:id/pay:', err);
+    res.status(400).json({ error: err.message || 'Failed to record customer payment' });
+  }
+});
+
+app.get('/api/accounting/vendors-bills', async (_req, res) => {
+  try {
+    const data = await getVendorsAndBillsWithAging();
+    res.json({ success: true, ...data });
+  } catch (err: any) {
+    console.error('Error in GET /api/accounting/vendors-bills:', err);
+    res.status(500).json({ error: err.message || 'Failed to load A/P bills' });
+  }
+});
+
+app.post('/api/accounting/vendors', async (req, res) => {
+  try {
+    const vendor = await createVendorRecord(req.body);
+    res.json({ success: true, vendor });
+  } catch (err: any) {
+    console.error('Error in POST /api/accounting/vendors:', err);
+    res.status(400).json({ error: err.message || 'Failed to create vendor' });
+  }
+});
+
+app.post('/api/accounting/bills', async (req, res) => {
+  try {
+    const bill = await createApBill({
+      vendorId: Number(req.body.vendorId),
+      billDate: req.body.billDate,
+      dueDate: req.body.dueDate,
+      expenseAccountNumber: req.body.expenseAccountNumber || '5200',
+      totalAmount: Number(req.body.totalAmount),
+      memo: req.body.memo,
+    });
+    res.json({ success: true, bill });
+  } catch (err: any) {
+    console.error('Error in POST /api/accounting/bills:', err);
+    res.status(400).json({ error: err.message || 'Failed to enter vendor bill' });
+  }
+});
+
+app.post('/api/accounting/bills/:id/pay', async (req, res) => {
+  try {
+    const billId = parseInt(req.params.id, 10);
+    const amount = Number(req.body.amount);
+    const paymentAccountNumber = req.body.paymentAccountNumber || '1020';
+    const updated = await payApBill(billId, amount, paymentAccountNumber);
+    res.json({ success: true, bill: updated });
+  } catch (err: any) {
+    console.error('Error in POST /api/accounting/bills/:id/pay:', err);
+    res.status(400).json({ error: err.message || 'Failed to pay vendor bill' });
+  }
+});
+
+app.get('/api/accounting/banking', async (req, res) => {
+  try {
+    const acct = (req.query.accountNumber as string) || '1020';
+    const data = await getBankRegisterAndReconciliation(acct);
+    res.json({ success: true, ...data });
+  } catch (err: any) {
+    console.error('Error in GET /api/accounting/banking:', err);
+    res.status(500).json({ error: err.message || 'Failed to load bank register' });
+  }
+});
+
+app.post('/api/accounting/reconcile', async (req, res) => {
+  try {
+    const rec = await completeBankReconciliation({
+      accountNumber: req.body.accountNumber || '1020',
+      statementDate: req.body.statementDate,
+      statementEndingBalance: Number(req.body.statementEndingBalance),
+      selectedLineIds: Array.isArray(req.body.selectedLineIds) ? req.body.selectedLineIds : [],
+    });
+    res.json({ success: true, reconciliation: rec });
+  } catch (err: any) {
+    console.error('Error in POST /api/accounting/reconcile:', err);
+    res.status(400).json({ error: err.message || 'Reconciliation failed' });
+  }
+});
+
+app.get('/api/accounting/reports', async (_req, res) => {
+  try {
+    const reports = await getMoaFinancialReports();
+    res.json({ success: true, ...reports });
+  } catch (err: any) {
+    console.error('Error in GET /api/accounting/reports:', err);
+    res.status(500).json({ error: err.message || 'Failed to generate MOA 2009 statements' });
   }
 });
 

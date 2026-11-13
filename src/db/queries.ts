@@ -17,6 +17,7 @@ import {
   calculateTransactionNet,
   generatePatientQrToken,
 } from '../utils/clinicLogic.ts';
+import { postClinicTransactionToMoaLedger } from './accountingQueries.ts';
 
 export async function getOrCreateUser(uid: string, email: string, displayName?: string, photoUrl?: string) {
   try {
@@ -452,6 +453,17 @@ export async function recordAutomatedTransaction(input: {
     })
     .returning();
 
+  // Mirror automatically to Microsoft Office Accounting 2009 General Ledger
+  await postClinicTransactionToMoaLedger({
+    sourceRef: input.referenceNumber,
+    type: input.type,
+    description: input.description,
+    patientName: input.patientName,
+    grossAmount: Number(input.grossAmount) || 0,
+    cogsAmount: Number(input.cogsAmount) || 0,
+    paymentMethod: input.paymentMethod,
+  });
+
   return inserted[0];
 }
 
@@ -566,10 +578,33 @@ export async function processPharmacyCheckoutAndLedger(data: {
       })
       .returning();
 
+    const txRecord = ledgerRows[0];
+
     return {
-      transaction: ledgerRows[0],
+      transaction: txRecord,
       processedItems,
       triggeredAlerts,
+      meta: {
+        finalGross: Math.round(finalGross * 100) / 100,
+        computedCogs: Math.round(computedCogs * 100) / 100,
+        itemSummary,
+      },
+    };
+  }).then(async (txResult) => {
+    await postClinicTransactionToMoaLedger({
+      sourceRef: data.referenceNumber,
+      type: 'pharmacy_sale',
+      description: `Pharmacy POS Sale: ${txResult.meta.itemSummary || 'Herbal Remedies'}`,
+      patientName: data.patientName || 'Walk-In Dispensary Patient',
+      grossAmount: txResult.meta.finalGross,
+      cogsAmount: txResult.meta.computedCogs,
+      paymentMethod: data.paymentMethod || 'POS Terminal',
+    });
+
+    return {
+      transaction: txResult.transaction,
+      processedItems: txResult.processedItems,
+      triggeredAlerts: txResult.triggeredAlerts,
     };
   });
 }

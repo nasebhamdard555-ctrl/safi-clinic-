@@ -6,17 +6,19 @@ import {
   QrCode,
   ArrowRight,
   AlertTriangle,
+  BookOpen,
 } from 'lucide-react';
 import { AccountingDashboard } from '../components/AccountingDashboard';
 import { InventoryTracker } from '../components/InventoryTracker';
 import { SocialSettingsPanel } from '../components/SocialSettingsPanel';
+import { Accounting2009Workspace } from '../components/moa2009/Accounting2009Workspace';
 import { useClinicConfig } from '../context/ClinicConfigContext';
 
 interface AdminDashboardPageProps {
   onNavigateToPos: () => void;
 }
 
-type AdminTab = 'accounting' | 'inventory' | 'settings';
+type AdminTab = 'accounting' | 'moa2009' | 'inventory' | 'settings';
 
 /**
  * AdminDashboardPage
@@ -89,6 +91,21 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           <button
             type="button"
             role="tab"
+            aria-selected={activeTab === 'moa2009'}
+            onClick={() => setActiveTab('moa2009')}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 border transition-all cursor-pointer ${
+              activeTab === 'moa2009'
+                ? 'bg-[#122e22] border-[#d4af37] text-[#d4af37]'
+                : 'bg-[#07160f] border-[#1b3b2f] text-[#a6b6ad] hover:text-white'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Accounting 2009 Suite</span>
+          </button>
+
+          <button
+            type="button"
+            role="tab"
             aria-selected={activeTab === 'inventory'}
             onClick={() => setActiveTab('inventory')}
             className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 border transition-all cursor-pointer ${
@@ -127,6 +144,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         <div>
           {activeTab === 'accounting' && (
             <AccountingDashboard refreshTrigger={analyticsRefreshTick} />
+          )}
+          {activeTab === 'moa2009' && (
+            <Accounting2009Workspace onLedgerChanged={triggerAnalyticsRefresh} />
           )}
           {activeTab === 'inventory' && (
             <InventoryTracker onInventoryUpdated={triggerAnalyticsRefresh} />

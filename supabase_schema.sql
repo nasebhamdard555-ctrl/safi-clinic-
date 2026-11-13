@@ -154,3 +154,97 @@ CREATE TRIGGER trg_medicines_low_stock
 AFTER UPDATE OF stock_quantity ON public.medicines
 FOR EACH ROW
 EXECUTE FUNCTION public.notify_low_stock();
+
+-- ============================================================================
+-- 8. MICROSOFT OFFICE ACCOUNTING 2009 (MOA 2009) DOUBLE-ENTRY TABLES
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS public.gl_accounts (
+  id SERIAL PRIMARY KEY,
+  account_number TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  account_type TEXT NOT NULL CHECK (account_type IN ('Asset', 'Liability', 'Equity', 'Revenue', 'COGS', 'Expense')),
+  normal_balance TEXT NOT NULL CHECK (normal_balance IN ('Debit', 'Credit')),
+  description TEXT,
+  is_system BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.bank_reconciliations (
+  id SERIAL PRIMARY KEY,
+  account_id INTEGER NOT NULL REFERENCES public.gl_accounts(id) ON DELETE CASCADE,
+  statement_date TEXT NOT NULL,
+  statement_ending_balance NUMERIC(12, 2) NOT NULL,
+  cleared_balance NUMERIC(12, 2) NOT NULL,
+  difference NUMERIC(12, 2) NOT NULL DEFAULT 0,
+  cleared_line_count INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'Reconciled',
+  completed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.journal_entries (
+  id SERIAL PRIMARY KEY,
+  entry_number TEXT NOT NULL UNIQUE,
+  entry_date TEXT NOT NULL,
+  memo TEXT NOT NULL,
+  source_module TEXT NOT NULL DEFAULT 'General Journal',
+  source_ref TEXT,
+  status TEXT NOT NULL DEFAULT 'Posted',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.journal_lines (
+  id SERIAL PRIMARY KEY,
+  journal_entry_id INTEGER NOT NULL REFERENCES public.journal_entries(id) ON DELETE CASCADE,
+  account_id INTEGER NOT NULL REFERENCES public.gl_accounts(id) ON DELETE RESTRICT,
+  description TEXT,
+  debit NUMERIC(12, 2) NOT NULL DEFAULT 0,
+  credit NUMERIC(12, 2) NOT NULL DEFAULT 0,
+  reconciled BOOLEAN NOT NULL DEFAULT FALSE,
+  reconciliation_id INTEGER REFERENCES public.bank_reconciliations(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.vendors (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  contact_name TEXT,
+  phone TEXT,
+  email TEXT,
+  category TEXT NOT NULL DEFAULT 'Botanical Supplier',
+  payment_terms TEXT NOT NULL DEFAULT 'Net 30',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.ar_invoices (
+  id SERIAL PRIMARY KEY,
+  invoice_number TEXT NOT NULL UNIQUE,
+  patient_id INTEGER,
+  customer_name TEXT NOT NULL,
+  customer_email TEXT,
+  issue_date TEXT NOT NULL,
+  due_date TEXT NOT NULL,
+  subtotal NUMERIC(12, 2) NOT NULL DEFAULT 0,
+  tax_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
+  total_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
+  amount_paid NUMERIC(12, 2) NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'Open',
+  line_items_json TEXT,
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.ap_bills (
+  id SERIAL PRIMARY KEY,
+  bill_number TEXT NOT NULL UNIQUE,
+  vendor_id INTEGER NOT NULL REFERENCES public.vendors(id) ON DELETE RESTRICT,
+  vendor_name TEXT NOT NULL,
+  bill_date TEXT NOT NULL,
+  due_date TEXT NOT NULL,
+  expense_account_number TEXT NOT NULL DEFAULT '5200',
+  total_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
+  amount_paid NUMERIC(12, 2) NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'Open',
+  memo TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+

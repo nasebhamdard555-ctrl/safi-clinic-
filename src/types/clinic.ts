@@ -302,3 +302,121 @@ export interface ClinicConfigSettings {
   updatedAt?: string;
 }
 
+// ============================================================================
+// MICROSOFT OFFICE ACCOUNTING 2009 (MOA 2009) TYPES
+// ============================================================================
+
+export type MoaAccountType = 'Asset' | 'Liability' | 'Equity' | 'Revenue' | 'COGS' | 'Expense';
+
+export interface GlAccountRecord {
+  id: number;
+  accountNumber: string;
+  name: string;
+  accountType: MoaAccountType;
+  normalBalance: 'Debit' | 'Credit';
+  description?: string | null;
+  isSystem: boolean;
+  totalDebits: number;
+  totalCredits: number;
+  balance: number;
+  createdAt?: string;
+}
+
+export interface JournalLineRecord {
+  id: number;
+  journalEntryId: number;
+  accountId: number;
+  accountNumber: string;
+  accountName: string;
+  description?: string | null;
+  debit: number;
+  credit: number;
+  reconciled: boolean;
+  reconciliationId?: number | null;
+}
+
+export interface JournalEntryRecord {
+  id: number;
+  entryNumber: string;
+  entryDate: string;
+  memo: string;
+  sourceModule: string;
+  sourceRef?: string | null;
+  status: string;
+  createdAt: string;
+  lines: JournalLineRecord[];
+  totalDebits: number;
+  totalCredits: number;
+}
+
+export interface VendorRecord {
+  id: number;
+  name: string;
+  contactName?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  category: string;
+  paymentTerms: string;
+  createdAt?: string;
+}
+
+export interface ArInvoiceRecord {
+  id: number;
+  invoiceNumber: string;
+  patientId?: number | null;
+  customerName: string;
+  customerEmail?: string | null;
+  issueDate: string;
+  dueDate: string;
+  subtotal: number;
+  taxAmount: number;
+  totalAmount: number;
+  amountPaid: number;
+  status: 'Open' | 'Partial' | 'Paid' | 'Overdue';
+  lineItemsJson?: string | null;
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface ApBillRecord {
+  id: number;
+  billNumber: string;
+  vendorId: number;
+  vendorName: string;
+  billDate: string;
+  dueDate: string;
+  expenseAccountNumber: string;
+  totalAmount: number;
+  amountPaid: number;
+  status: 'Open' | 'Partial' | 'Paid' | 'Overdue';
+  memo?: string | null;
+  createdAt: string;
+}
+
+export interface BankRegisterLine {
+  lineId: number;
+  journalEntryId: number;
+  entryNumber: string;
+  entryDate: string;
+  memo: string;
+  sourceModule: string;
+  debit: number;
+  credit: number;
+  runningBalance: number;
+  reconciled: boolean;
+  reconciliationId?: number | null;
+}
+
+export interface BankReconciliationLog {
+  id: number;
+  accountId: number;
+  statementDate: string;
+  statementEndingBalance: number;
+  clearedBalance: number;
+  difference: number;
+  clearedLineCount: number;
+  status: string;
+  completedAt: string;
+}
+
+

@@ -1,5 +1,6 @@
 import { relations } from 'drizzle-orm';
 import {
+  boolean,
   doublePrecision,
   integer,
   pgTable,
@@ -226,3 +227,140 @@ export const protocolsRelations = relations(protocols, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+// ============================================================================
+// MICROSOFT OFFICE ACCOUNTING 2009 (MOA 2009) DOUBLE-ENTRY SCHEMA
+// ============================================================================
+
+// Chart of Accounts (1000-5999)
+export const glAccounts = pgTable('gl_accounts', {
+  id: serial('id').primaryKey(),
+  accountNumber: text('account_number').notNull().unique(),
+  name: text('name').notNull(),
+  accountType: text('account_type').notNull(), // 'Asset' | 'Liability' | 'Equity' | 'Revenue' | 'COGS' | 'Expense'
+  normalBalance: text('normal_balance').notNull(), // 'Debit' | 'Credit'
+  description: text('description'),
+  isSystem: boolean('is_system').notNull().default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// Bank Reconciliations Log
+export const bankReconciliations = pgTable('bank_reconciliations', {
+  id: serial('id').primaryKey(),
+  accountId: integer('account_id')
+    .notNull()
+    .references(() => glAccounts.id, { onDelete: 'cascade' }),
+  statementDate: text('statement_date').notNull(),
+  statementEndingBalance: doublePrecision('statement_ending_balance').notNull(),
+  clearedBalance: doublePrecision('cleared_balance').notNull(),
+  difference: doublePrecision('difference').notNull().default(0),
+  clearedLineCount: integer('cleared_line_count').notNull().default(0),
+  status: text('status').notNull().default('Reconciled'),
+  completedAt: timestamp('completed_at').defaultNow(),
+});
+
+// General Journal Entry Header
+export const journalEntries = pgTable('journal_entries', {
+  id: serial('id').primaryKey(),
+  entryNumber: text('entry_number').notNull().unique(),
+  entryDate: text('entry_date').notNull(), // YYYY-MM-DD
+  memo: text('memo').notNull(),
+  sourceModule: text('source_module').notNull().default('General Journal'),
+  sourceRef: text('source_ref'),
+  status: text('status').notNull().default('Posted'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// General Journal Lines (Debits === Credits enforced per JournalEntry)
+export const journalLines = pgTable('journal_lines', {
+  id: serial('id').primaryKey(),
+  journalEntryId: integer('journal_entry_id')
+    .notNull()
+    .references(() => journalEntries.id, { onDelete: 'cascade' }),
+  accountId: integer('account_id')
+    .notNull()
+    .references(() => glAccounts.id, { onDelete: 'restrict' }),
+  description: text('description'),
+  debit: doublePrecision('debit').notNull().default(0),
+  credit: doublePrecision('credit').notNull().default(0),
+  reconciled: boolean('reconciled').notNull().default(false),
+  reconciliationId: integer('reconciliation_id').references(() => bankReconciliations.id, {
+    onDelete: 'set null',
+  }),
+});
+
+// Botanical & Clinical Suppliers (Vendors)
+export const vendors = pgTable('vendors', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  contactName: text('contact_name'),
+  phone: text('phone'),
+  email: text('email'),
+  category: text('category').notNull().default('Botanical Supplier'),
+  paymentTerms: text('payment_terms').notNull().default('Net 30'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// Customers & Accounts Receivable Invoices (A/R)
+export const arInvoices = pgTable('ar_invoices', {
+  id: serial('id').primaryKey(),
+  invoiceNumber: text('invoice_number').notNull().unique(),
+  patientId: integer('patient_id').references(() => patients.id, { onDelete: 'set null' }),
+  customerName: text('customer_name').notNull(),
+  customerEmail: text('customer_email'),
+  issueDate: text('issue_date').notNull(),
+  dueDate: text('due_date').notNull(),
+  subtotal: doublePrecision('subtotal').notNull().default(0),
+  taxAmount: doublePrecision('tax_amount').notNull().default(0),
+  totalAmount: doublePrecision('total_amount').notNull().default(0),
+  amountPaid: doublePrecision('amount_paid').notNull().default(0),
+  status: text('status').notNull().default('Open'), // 'Open' | 'Partial' | 'Paid' | 'Overdue'
+  lineItemsJson: text('line_items_json'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// Vendors & Accounts Payable Bills (A/P)
+export const apBills = pgTable('ap_bills', {
+  id: serial('id').primaryKey(),
+  billNumber: text('bill_number').notNull().unique(),
+  vendorId: integer('vendor_id')
+    .notNull()
+    .references(() => vendors.id, { onDelete: 'restrict' }),
+  vendorName: text('vendor_name').notNull(),
+  billDate: text('bill_date').notNull(),
+  dueDate: text('due_date').notNull(),
+  expenseAccountNumber: text('expense_account_number').notNull().default('5200'),
+  totalAmount: doublePrecision('total_amount').notNull().default(0),
+  amountPaid: doublePrecision('amount_paid').notNull().default(0),
+  status: text('status').notNull().default('Open'), // 'Open' | 'Partial' | 'Paid' | 'Overdue'
+  memo: text('memo'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const journalEntriesRelations = relations(journalEntries, ({ many }) => ({
+  lines: many(journalLines),
+}));
+
+export const journalLinesRelations = relations(journalLines, ({ one }) => ({
+  entry: one(journalEntries, {
+    fields: [journalLines.journalEntryId],
+    references: [journalEntries.id],
+  }),
+  account: one(glAccounts, {
+    fields: [journalLines.accountId],
+    references: [glAccounts.id],
+  }),
+}));
+
+export const vendorsRelations = relations(vendors, ({ many }) => ({
+  bills: many(apBills),
+}));
+
+export const apBillsRelations = relations(apBills, ({ one }) => ({
+  vendor: one(vendors, {
+    fields: [apBills.vendorId],
+    references: [vendors.id],
+  }),
+}));
+
