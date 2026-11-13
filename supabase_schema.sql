@@ -247,4 +247,3 @@ CREATE TABLE IF NOT EXISTS public.ap_bills (
   memo TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
