@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { useClinicConfig } from '../context/ClinicConfigContext';
+import { useCurrency } from '../context/CurrencyContext';
 import { MedicineInventoryItem, PatientCrmProfile } from '../types/clinic';
 import {
   calculatePosCartTotals,
@@ -52,6 +53,7 @@ interface PosScannerProps {
  */
 export const PosScanner: React.FC<PosScannerProps> = ({ onSaleCompleted }) => {
   const { medicines, settings, refreshInventory } = useClinicConfig();
+  const { formatPrice } = useCurrency();
   const [cart, setCart] = useState<PosCartLine[]>([]);
   const [manualCode, setManualCode] = useState('');
   const [searchFilter, setSearchFilter] = useState('');
@@ -167,7 +169,7 @@ export const PosScanner: React.FC<PosScannerProps> = ({ onSaleCompleted }) => {
 
     setScanMessage({
       type: 'success',
-      text: `Scanned & added: ${found.name} ($${Number(found.unitPrice).toFixed(2)})`,
+      text: `Scanned & added: ${found.name} (${formatPrice(Number(found.unitPrice))})`,
     });
     setReceipt(null);
   };
@@ -442,7 +444,7 @@ export const PosScanner: React.FC<PosScannerProps> = ({ onSaleCompleted }) => {
                       {med.name}
                     </div>
                     <div className="text-[11px] font-mono text-[#d4af37]">
-                      {med.barcodeQr} · ${Number(med.unitPrice).toFixed(2)}
+                      {med.barcodeQr} · <span dir="ltr">{formatPrice(Number(med.unitPrice))}</span>
                     </div>
                     <div
                       className={`text-[11px] font-semibold font-mono tabular-nums ${
@@ -497,20 +499,20 @@ export const PosScanner: React.FC<PosScannerProps> = ({ onSaleCompleted }) => {
             <div className="grid grid-cols-3 gap-2 pt-1 font-mono tabular-nums">
               <div>
                 <span className="text-[10px] text-[#8da396] block">Gross</span>
-                <span className="text-[#f5f3ec] font-bold">
-                  ${receipt.total.toFixed(2)}
+                <span dir="ltr" className="text-[#f5f3ec] font-bold">
+                  {formatPrice(receipt.total)}
                 </span>
               </div>
               <div>
                 <span className="text-[10px] text-[#8da396] block">COGS</span>
-                <span className="text-amber-300 font-bold">
-                  ${receipt.cogsAmount.toFixed(2)}
+                <span dir="ltr" className="text-amber-300 font-bold">
+                  {formatPrice(receipt.cogsAmount)}
                 </span>
               </div>
               <div>
                 <span className="text-[10px] text-[#8da396] block">Net Profit</span>
-                <span className="text-emerald-400 font-bold">
-                  ${receipt.netAmount.toFixed(2)}
+                <span dir="ltr" className="text-emerald-400 font-bold">
+                  {formatPrice(receipt.netAmount)}
                 </span>
               </div>
             </div>
@@ -543,8 +545,8 @@ export const PosScanner: React.FC<PosScannerProps> = ({ onSaleCompleted }) => {
                   <div className="font-semibold text-[#f5f3ec] truncate">
                     {line.medicine.name}
                   </div>
-                  <div className="text-[11px] font-mono text-[#8da396]">
-                    ${Number(line.medicine.unitPrice).toFixed(2)} × {line.quantity}
+                  <div dir="ltr" className="text-[11px] font-mono text-[#8da396]">
+                    {formatPrice(Number(line.medicine.unitPrice))} × {line.quantity}
                   </div>
                 </div>
 
@@ -571,8 +573,11 @@ export const PosScanner: React.FC<PosScannerProps> = ({ onSaleCompleted }) => {
                     </button>
                   </div>
 
-                  <span className="w-16 text-right font-mono tabular-nums font-bold text-[#d4af37]">
-                    ${(Number(line.medicine.unitPrice) * line.quantity).toFixed(2)}
+                  <span
+                    dir="ltr"
+                    className="min-w-[82px] text-right font-mono tabular-nums font-bold text-[#d4af37] whitespace-nowrap"
+                  >
+                    {formatPrice(Number(line.medicine.unitPrice) * line.quantity)}
                   </span>
 
                   <button
@@ -669,19 +674,19 @@ export const PosScanner: React.FC<PosScannerProps> = ({ onSaleCompleted }) => {
         <div className="p-4 rounded-xl bg-[#05110a] border border-[#1b3b2f] space-y-1.5 text-xs font-mono tabular-nums">
           <div className="flex justify-between text-[#a6b6ad]">
             <span>Subtotal</span>
-            <span>${posTotals.subtotal.toFixed(2)}</span>
+            <span dir="ltr">{formatPrice(posTotals.subtotal)}</span>
           </div>
           <div className="flex justify-between text-[#a6b6ad]">
             <span>Dispensary Tax (5%)</span>
-            <span>${posTotals.tax.toFixed(2)}</span>
+            <span dir="ltr">{formatPrice(posTotals.tax)}</span>
           </div>
           <div className="flex justify-between text-[11px] text-[#6b8275]">
             <span>Wholesale COGS Tracked</span>
-            <span>${posTotals.totalCogs.toFixed(2)}</span>
+            <span dir="ltr">{formatPrice(posTotals.totalCogs)}</span>
           </div>
           <div className="flex justify-between pt-2 border-t border-[#1b3b2f] text-sm font-bold text-[#d4af37]">
             <span>Total Due</span>
-            <span>${posTotals.total.toFixed(2)}</span>
+            <span dir="ltr">{formatPrice(posTotals.total)}</span>
           </div>
         </div>
 
@@ -693,7 +698,7 @@ export const PosScanner: React.FC<PosScannerProps> = ({ onSaleCompleted }) => {
         >
           {submitting
             ? 'Logging Sale & Decrementing Stock...'
-            : `Complete POS Sale ($${posTotals.total.toFixed(2)})`}
+            : `Complete POS Sale (${formatPrice(posTotals.total)})`}
         </button>
       </div>
     </div>

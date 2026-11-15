@@ -18,12 +18,17 @@ import {
   CLINIC_PROFILE,
 } from '../data/clinicData';
 import { Appointment } from '../types/clinic';
+import { useLanguage } from '../context/LanguageContext';
+import { pickLocalized } from '../utils/i18n';
 
 interface StaffCalendarProps {
   onSelectBooking?: (appointment: Appointment) => void;
 }
 
 export const StaffCalendar: React.FC<StaffCalendarProps> = () => {
+  const { language, t } = useLanguage();
+  const tx = <T,>(en: T, ps: T, fa: T) => pickLocalized(language, { en, ps, fa });
+
   const todayStr = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
   const [selectedPractitionerId, setSelectedPractitionerId] = useState<string>('all');
@@ -193,34 +198,34 @@ export const StaffCalendar: React.FC<StaffCalendarProps> = () => {
   });
 
   return (
-    <div className="rounded-3xl bg-white border border-[#D6CFC3] p-6 sm:p-10 shadow-sm space-y-7 text-[#18201B]">
+    <div className="rounded-3xl bg-[#0B1D14] border border-[#1D3B2C] p-6 sm:p-10 shadow-xl space-y-7 text-[#F4F0E6]">
       {/* Calendar Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E6E0D6] pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#1D3B2C] pb-6">
         <div className="space-y-1">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8C5A32]">
-            Staff Reception Roster · {CLINIC_PROFILE.hoursPolicy}
+          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D4AF37]">
+            {t.brand.hoursPolicy}
           </span>
-          <h2 className="font-serif-classic text-2xl sm:text-3xl font-bold text-[#18201B]">
-            Clinic Master Calendar &amp; Walk-In Log
+          <h2 className="font-serif-classic text-2xl sm:text-3xl font-bold text-[#F4F0E6]">
+            {t.booking.tabStaff}
           </h2>
-          <p className="text-xs sm:text-sm text-[#525C56]">
-            Daily outpatient schedule for Dr. Hafizullah Safi and Safi Clinical Care Team in Kabul.
+          <p className="text-xs sm:text-sm text-[#A6B8AE]">
+            {t.booking.pageSub}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={() => setIsAddingWalkin(!isAddingWalkin)}
-            className="px-4 py-2.5 rounded-xl bg-[#18201B] hover:bg-[#2C3931] text-[#FAF8F5] font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
+            className="min-h-[42px] px-4 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#E2C36B] text-[#06110C] font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Add Walk-in Visit</span>
+            <span>{tx('Add Walk-in Visit', 'حاضر ناروغ اضافه کړئ', 'ثبت مراجعه حضوری')}</span>
           </button>
           <button
             onClick={loadAppointments}
-            className="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#D6CFC3] text-[#525C56] hover:text-[#18201B] transition-colors cursor-pointer"
-            title="Refresh schedule"
-            aria-label="Refresh schedule"
+            className="min-w-[42px] min-h-[42px] p-2.5 rounded-xl bg-[#06110C] border border-[#1D3B2C] text-[#A6B8AE] hover:text-[#D4AF37] hover:border-[#D4AF37] transition-colors flex items-center justify-center cursor-pointer"
+            title={tx('Refresh schedule', 'مهالویش تازه کړئ', 'تازه‌سازی برنامه')}
+            aria-label={tx('Refresh schedule', 'مهالویش تازه کړئ', 'تازه‌سازی برنامه')}
           >
             <RefreshCw className="w-4 h-4" />
           </button>
@@ -228,52 +233,53 @@ export const StaffCalendar: React.FC<StaffCalendarProps> = () => {
       </div>
 
       {/* Date Navigation & Filters */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-[#FAF8F5] border border-[#D6CFC3]">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 rounded-2xl bg-[#06110C] border border-[#1D3B2C]">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => shiftDate(-1)}
-            className="p-2 rounded-lg bg-white border border-[#D6CFC3] hover:border-[#18201B] text-[#18201B] cursor-pointer"
-            aria-label="Previous day"
+            className="min-w-[38px] min-h-[38px] p-2 rounded-lg bg-[#0B1D14] border border-[#1D3B2C] hover:border-[#D4AF37] text-[#F4F0E6] flex items-center justify-center cursor-pointer"
+            aria-label={tx('Previous day', 'تېره ورځ', 'روز قبل')}
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-4 h-4 rtl:rotate-180" />
           </button>
 
           <input
             type="date"
+            dir="ltr"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            aria-label="Select date"
-            className="px-3 py-1.5 rounded-lg bg-white border border-[#D6CFC3] text-xs font-bold text-[#18201B] focus:outline-none focus:border-[#18201B]"
+            aria-label={t.booking.selectDateLabel}
+            className="min-h-[38px] px-3 py-1.5 rounded-lg bg-[#0B1D14] border border-[#1D3B2C] text-xs font-bold text-[#F4F0E6] focus:outline-none focus:border-[#D4AF37]"
           />
 
           <button
             onClick={() => shiftDate(1)}
-            className="p-2 rounded-lg bg-white border border-[#D6CFC3] hover:border-[#18201B] text-[#18201B] cursor-pointer"
-            aria-label="Next day"
+            className="min-w-[38px] min-h-[38px] p-2 rounded-lg bg-[#0B1D14] border border-[#1D3B2C] hover:border-[#D4AF37] text-[#F4F0E6] flex items-center justify-center cursor-pointer"
+            aria-label={tx('Next day', 'راتلونکې ورځ', 'روز بعد')}
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4 rtl:rotate-180" />
           </button>
 
           <button
             onClick={() => setSelectedDate(todayStr)}
-            className="px-2.5 py-1.5 rounded-lg bg-[#F2EEE7] border border-[#D6CFC3] text-[11px] font-semibold text-[#18201B] cursor-pointer"
+            className="min-h-[38px] px-3 py-1.5 rounded-lg bg-[#0B1D14] border border-[#1D3B2C] hover:border-[#D4AF37] text-[11px] font-semibold text-[#D4AF37] cursor-pointer"
           >
-            Today
+            {tx('Today', 'نن', 'امروز')}
           </button>
         </div>
 
         <div className="flex items-center gap-2">
-          <Filter className="w-3.5 h-3.5 text-[#525C56]" />
+          <Filter className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
           <select
             value={selectedPractitionerId}
             onChange={(e) => setSelectedPractitionerId(e.target.value)}
-            aria-label="Filter by practitioner"
-            className="px-3 py-1.5 rounded-lg bg-white border border-[#D6CFC3] text-xs text-[#18201B] focus:outline-none focus:border-[#18201B]"
+            aria-label={t.booking.clinicianLabel}
+            className="w-full sm:w-auto min-h-[38px] px-3 py-1.5 rounded-lg bg-[#0B1D14] border border-[#1D3B2C] text-xs text-[#F4F0E6] focus:outline-none focus:border-[#D4AF37]"
           >
-            <option value="all">All Clinicians</option>
+            <option value="all">{t.treatments.allCat}</option>
             {PRACTITIONERS.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name}
+                {p.id === 'prac-hafizullah' ? t.brand.founderName : tx('Safi Clinical Care Team', 'د صافي کلینیکي پاملرنې ټیم', 'تیم مراقبت کلینیکی صافی')}
               </option>
             ))}
           </select>
@@ -284,79 +290,80 @@ export const StaffCalendar: React.FC<StaffCalendarProps> = () => {
       {isAddingWalkin && (
         <form
           onSubmit={handleAddWalkin}
-          className="p-6 rounded-2xl bg-[#FAF8F5] border border-[#18201B] space-y-4"
+          className="p-6 rounded-2xl bg-[#06110C] border border-[#D4AF37]/60 space-y-4"
         >
           <div className="flex items-center justify-between">
-            <h3 className="font-serif-classic font-bold text-sm text-[#18201B] flex items-center gap-2">
-              <Plus className="w-4 h-4 text-[#8C5A32]" />
-              Register Walk-In Patient
+            <h3 className="font-serif-classic font-bold text-sm text-[#F4F0E6] flex items-center gap-2">
+              <Plus className="w-4 h-4 text-[#D4AF37]" />
+              {tx('Register Walk-In Patient', 'د حاضر ناروغ ثبتول', 'ثبت بیمار حضوری')}
             </h3>
             <button
               type="button"
               onClick={() => setIsAddingWalkin(false)}
-              className="text-xs text-[#525C56] hover:text-[#18201B] cursor-pointer"
+              className="text-xs text-[#A6B8AE] hover:text-[#F4F0E6] cursor-pointer"
             >
-              Cancel
+              {t.about.closeBtn}
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
-              <label className="text-[10px] font-semibold text-[#525C56] block mb-1">
-                Patient Full Name
+              <label className="text-[10px] font-semibold text-[#A6B8AE] block mb-1">
+                {t.booking.legalName}
               </label>
               <input
                 type="text"
                 required
-                placeholder="e.g. Ahmad Shah"
+                placeholder="Ahmad Shah"
                 value={walkinName}
                 onChange={(e) => setWalkinName(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white border border-[#D6CFC3] text-xs text-[#18201B] focus:outline-none focus:border-[#18201B]"
+                className="w-full min-h-[38px] px-3 py-2 rounded-lg bg-[#0B1D14] border border-[#1D3B2C] text-xs text-[#F4F0E6] placeholder:text-[#6E8478] focus:outline-none focus:border-[#D4AF37]"
               />
             </div>
 
             <div>
-              <label className="text-[10px] font-semibold text-[#525C56] block mb-1">
-                Phone Number
+              <label className="text-[10px] font-semibold text-[#A6B8AE] block mb-1">
+                {t.booking.phoneWhatsapp}
               </label>
               <input
                 type="text"
+                dir="ltr"
                 placeholder="+93 7XX XXX XXX"
                 value={walkinPhone}
                 onChange={(e) => setWalkinPhone(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white border border-[#D6CFC3] text-xs text-[#18201B] focus:outline-none focus:border-[#18201B]"
+                className="w-full min-h-[38px] px-3 py-2 rounded-lg bg-[#0B1D14] border border-[#1D3B2C] text-xs text-[#F4F0E6] placeholder:text-[#6E8478] focus:outline-none focus:border-[#D4AF37]"
               />
             </div>
 
             <div>
-              <label className="text-[10px] font-semibold text-[#525C56] block mb-1">
-                Service
+              <label className="text-[10px] font-semibold text-[#A6B8AE] block mb-1">
+                {t.booking.serviceLabel}
               </label>
               <select
                 value={walkinService}
                 onChange={(e) => setWalkinService(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white border border-[#D6CFC3] text-xs text-[#18201B] focus:outline-none focus:border-[#18201B]"
+                className="w-full min-h-[38px] px-3 py-2 rounded-lg bg-[#0B1D14] border border-[#1D3B2C] text-xs text-[#F4F0E6] focus:outline-none focus:border-[#D4AF37]"
               >
                 {CONSULTATION_SERVICES.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.title} (${s.price})
+                    {t.servicesMap[s.id]?.title || s.title} (${s.price})
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="text-[10px] font-semibold text-[#525C56] block mb-1">
-                Clinician
+              <label className="text-[10px] font-semibold text-[#A6B8AE] block mb-1">
+                {t.booking.clinicianLabel}
               </label>
               <select
                 value={walkinPractitioner}
                 onChange={(e) => setWalkinPractitioner(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white border border-[#D6CFC3] text-xs text-[#18201B] focus:outline-none focus:border-[#18201B]"
+                className="w-full min-h-[38px] px-3 py-2 rounded-lg bg-[#0B1D14] border border-[#1D3B2C] text-xs text-[#F4F0E6] focus:outline-none focus:border-[#D4AF37]"
               >
                 {PRACTITIONERS.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.name}
+                    {p.id === 'prac-hafizullah' ? t.brand.founderName : tx('Safi Clinical Care Team', 'د صافي کلینیکي پاملرنې ټیم', 'تیم مراقبت کلینیکی صافی')}
                   </option>
                 ))}
               </select>
@@ -366,9 +373,9 @@ export const StaffCalendar: React.FC<StaffCalendarProps> = () => {
           <div className="flex justify-end pt-2">
             <button
               type="submit"
-              className="px-5 py-2 rounded-lg bg-[#18201B] text-[#FAF8F5] font-bold text-xs uppercase tracking-wider cursor-pointer"
+              className="min-h-[40px] px-5 py-2 rounded-lg bg-[#D4AF37] hover:bg-[#E2C36B] text-[#06110C] font-bold text-xs uppercase tracking-wider cursor-pointer"
             >
-              Confirm Walk-In
+              {t.booking.confirmReserveBtn}
             </button>
           </div>
         </form>
@@ -376,31 +383,28 @@ export const StaffCalendar: React.FC<StaffCalendarProps> = () => {
 
       {/* Appointment List */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between text-xs text-[#525C56] px-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#A6B8AE] px-1">
           <span>
-            Schedule for <strong className="text-[#18201B]">{selectedDate}</strong> ({dailyAppointments.length} bookings)
+            <strong className="text-[#F4F0E6]" dir="ltr">{selectedDate}</strong> ({dailyAppointments.length})
           </span>
           <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-600" /> Confirmed
+            <span className="flex items-center gap-1.5 text-emerald-400">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" /> {tx('Confirmed', 'تایید شوی', 'تاییدشده')}
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-amber-600" /> Pending
+            <span className="flex items-center gap-1.5 text-[#D4AF37]">
+              <span className="w-2 h-2 rounded-full bg-[#D4AF37]" /> {tx('Pending', 'په تمه', 'در انتظار')}
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-slate-600" /> Completed
+            <span className="flex items-center gap-1.5 text-[#A6B8AE]">
+              <span className="w-2 h-2 rounded-full bg-[#A6B8AE]" /> {tx('Completed', 'بشپړ شوی', 'تکمیل‌شده')}
             </span>
           </div>
         </div>
 
         {dailyAppointments.length === 0 ? (
-          <div className="p-12 text-center rounded-2xl bg-[#FAF8F5] border border-[#D6CFC3] space-y-2">
-            <CalendarIcon className="w-8 h-8 text-[#8C5A32] mx-auto" />
-            <p className="text-sm font-semibold text-[#18201B]">
-              No appointments scheduled for this date filter
-            </p>
-            <p className="text-xs text-[#525C56]">
-              Use &ldquo;Add Walk-in Visit&rdquo; or pick another date above.
+          <div className="p-12 text-center rounded-2xl bg-[#06110C] border border-[#1D3B2C] space-y-2">
+            <CalendarIcon className="w-8 h-8 text-[#D4AF37] mx-auto" />
+            <p className="text-sm font-semibold text-[#F4F0E6]">
+              {tx('No appointments scheduled for this date filter', 'د دې نیټې لپاره کوم نوبت نشته', 'هیچ نوبتی برای این تاریخ ثبت نشده است')}
             </p>
           </div>
         ) : (
@@ -408,43 +412,48 @@ export const StaffCalendar: React.FC<StaffCalendarProps> = () => {
             {dailyAppointments.map((app) => (
               <div
                 key={app.id}
-                className="p-5 rounded-2xl bg-[#FAF8F5] border border-[#D6CFC3] flex flex-col md:flex-row md:items-center justify-between gap-4"
+                className="p-5 rounded-2xl bg-[#06110C] border border-[#1D3B2C] flex flex-col md:flex-row md:items-center justify-between gap-4"
               >
                 <div className="flex items-start gap-4">
-                  <div className="px-3.5 py-2.5 rounded-xl bg-white border border-[#D6CFC3] text-center shrink-0">
-                    <Clock className="w-4 h-4 text-[#8C5A32] mx-auto mb-1" />
-                    <span className="text-xs font-bold text-[#18201B] block">{app.timeSlot}</span>
+                  <div className="px-3.5 py-2.5 rounded-xl bg-[#0B1D14] border border-[#1D3B2C] text-center shrink-0">
+                    <Clock className="w-4 h-4 text-[#D4AF37] mx-auto mb-1" />
+                    <span className="text-xs font-bold text-[#F4F0E6] block tabular-nums" dir="ltr">{app.timeSlot}</span>
                   </div>
 
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-bold text-sm text-[#18201B]">
-                        {app.patient?.fullName || 'Patient'}
+                      <span className="font-bold text-sm text-[#F4F0E6]">
+                        {app.patient?.fullName || t.booking.patientLabel}
                       </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-[#F2EEE7] text-[#8C5A32] font-bold">
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-[#0B1D14] border border-[#1D3B2C] text-[#D4AF37] font-bold" dir="ltr">
                         #{app.referenceNumber || app.id}
                       </span>
                       {app.consultationType === 'Online Telehealth Video' ? (
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-sky-100 text-sky-800 flex items-center gap-1 font-medium">
-                          <Video className="w-3 h-3" /> Telehealth
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-sky-500/15 border border-sky-500/30 text-sky-300 flex items-center gap-1 font-medium">
+                          <Video className="w-3 h-3" /> {t.booking.telehealthTitle}
                         </span>
                       ) : (
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 flex items-center gap-1 font-medium">
-                          <MapPin className="w-3 h-3" /> In-Clinic
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center gap-1 font-medium">
+                          <MapPin className="w-3 h-3" /> {t.booking.inClinicTitle}
                         </span>
                       )}
                     </div>
 
-                    <p className="text-xs text-[#2B3730] font-medium">{app.serviceTitle}</p>
+                    <p className="text-xs text-[#C2D1C8] font-medium">
+                      {t.servicesMap[app.serviceId]?.title || app.serviceTitle}
+                    </p>
 
-                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-[#525C56]">
+                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-[#A6B8AE]">
                       <span>
-                        Clinician: <strong className="text-[#18201B]">{app.practitionerName}</strong>
+                        {t.booking.clinicianLabel}: <strong className="text-[#F4F0E6]">
+                          {app.practitionerId === 'prac-hafizullah' ? t.brand.founderName : tx('Safi Clinical Care Team', 'د صافي کلینیکي پاملرنې ټیم', 'تیم مراقبت کلینیکی صافی')}
+                        </strong>
                       </span>
                       {app.patient?.phone && (
                         <a
                           href={`tel:${app.patient.phone}`}
-                          className="flex items-center gap-1 text-[#8C5A32] font-medium hover:underline"
+                          dir="ltr"
+                          className="flex items-center gap-1 text-[#D4AF37] font-medium hover:underline"
                         >
                           <Phone className="w-3 h-3" /> {app.patient.phone}
                         </a>
@@ -452,8 +461,8 @@ export const StaffCalendar: React.FC<StaffCalendarProps> = () => {
                     </div>
 
                     {app.patient?.healthConcerns && (
-                      <p className="text-[11px] text-[#525C56] italic line-clamp-1 pt-0.5">
-                        Concern: {app.patient.healthConcerns}
+                      <p className="text-[11px] text-[#A6B8AE] italic line-clamp-1 pt-0.5">
+                        {app.patient.healthConcerns}
                       </p>
                     )}
                   </div>
@@ -469,18 +478,18 @@ export const StaffCalendar: React.FC<StaffCalendarProps> = () => {
                       )
                     }
                     aria-label={`Status for ${app.patient?.fullName || app.id}`}
-                    className="px-3 py-1.5 rounded-lg bg-white border border-[#D6CFC3] text-xs font-semibold text-[#18201B] focus:outline-none focus:border-[#18201B]"
+                    className="min-h-[38px] px-3 py-1.5 rounded-lg bg-[#0B1D14] border border-[#1D3B2C] text-xs font-semibold text-[#F4F0E6] focus:outline-none focus:border-[#D4AF37]"
                   >
-                    <option value="Confirmed">Confirmed</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Completed">Completed</option>
+                    <option value="Confirmed">{tx('Confirmed', 'تایید شوی', 'تاییدشده')}</option>
+                    <option value="Pending">{tx('Pending', 'په تمه', 'در انتظار')}</option>
+                    <option value="Completed">{tx('Completed', 'بشپړ شوی', 'تکمیل‌شده')}</option>
                   </select>
 
                   <button
                     onClick={() => handleUpdateStatus(app.id, 'Completed')}
-                    className="p-1.5 rounded-lg bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-colors cursor-pointer"
-                    title="Mark Completed"
-                    aria-label={`Mark ${app.patient?.fullName || app.id} completed`}
+                    className="min-w-[38px] min-h-[38px] p-2 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25 transition-colors flex items-center justify-center cursor-pointer"
+                    title={tx('Mark Completed', 'بشپړ شو', 'تکمیل شد')}
+                    aria-label={tx('Mark Completed', 'بشپړ شو', 'تکمیل شد')}
                   >
                     <CheckCircle2 className="w-4 h-4" />
                   </button>

@@ -8,6 +8,17 @@ import {
   ClinicPresentationSlide,
   OfficialProductCategory,
 } from '../types/clinic';
+import heroApothecaryImg from '../assets/images/hero_botanical_apothecary_1794735902543.jpg';
+import amberElixirImg from '../assets/images/product_amber_elixir_1794735902742.jpg';
+import resinBalmImg from '../assets/images/product_herbal_resin_balm_1794735903703.jpg';
+import clinicConsultationImg from '../assets/images/clinic_unani_consultation_1794735904695.jpg';
+
+export const CLINIC_ASSETS = {
+  heroApothecaryImg,
+  amberElixirImg,
+  resinBalmImg,
+  clinicConsultationImg,
+};
 
 export const OFFICIAL_PRODUCT_CATEGORIES: OfficialProductCategory[] = [
   "Women's Health & Hormonal Wellness",
@@ -370,7 +381,7 @@ export const HERBAL_PRODUCTS: HerbalProduct[] = [
     reviewsCount: 164,
     inStock: true,
     isPopular: true,
-    image: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=700&q=80',
+    image: amberElixirImg,
     volumeOrWeight: '60ml / 2.0 fl oz amber dropper',
     shortDescription:
       'Signature Unani endocrine formula supporting cycle regularity, luteal warmth, and natural hormonal equilibrium.',
@@ -401,7 +412,7 @@ export const HERBAL_PRODUCTS: HerbalProduct[] = [
     reviewsCount: 218,
     inStock: true,
     isPopular: true,
-    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=700&q=80',
+    image: heroApothecaryImg,
     volumeOrWeight: '50ml / 1.7 fl oz dropper',
     shortDescription:
       'Fast-acting herbal calm drops blending Lemon Balm, Passionflower, L-Theanine botanical green leaf, and Blue Skullcap.',
@@ -432,7 +443,7 @@ export const HERBAL_PRODUCTS: HerbalProduct[] = [
     reviewsCount: 192,
     inStock: true,
     isPopular: true,
-    image: 'https://images.unsplash.com/photo-1608248597359-566b6960d7b3?auto=format&fit=crop&w=700&q=80',
+    image: amberElixirImg,
     volumeOrWeight: '50ml / 1.7 fl oz dropper',
     shortDescription:
       'Internal & topical sea-buckthorn, rosehip, nettle seed, and nigella cellular nourishment for resilient skin and hair.',
@@ -463,7 +474,7 @@ export const HERBAL_PRODUCTS: HerbalProduct[] = [
     reviewsCount: 382,
     inStock: true,
     isPopular: true,
-    image: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=700&q=80',
+    image: heroApothecaryImg,
     volumeOrWeight: '100ml / 3.4 fl oz bottle',
     shortDescription:
       'Unfiltered, cold-pressed black cumin seed oil containing 2.8% natural Thymoquinone for metabolic and vascular support.',
@@ -493,7 +504,7 @@ export const HERBAL_PRODUCTS: HerbalProduct[] = [
     reviewsCount: 412,
     inStock: true,
     isPopular: false,
-    image: 'https://images.unsplash.com/photo-1512069772995-ec65ed45afd6?auto=format&fit=crop&w=700&q=80',
+    image: resinBalmImg,
     volumeOrWeight: '30g / 1.05 oz glass jar',
     shortDescription:
       'High-altitude purified Shilajit resin rich in 78% fulvic acid and ionic trace minerals for stamina and male vitality.',
@@ -521,7 +532,7 @@ export const HERBAL_PRODUCTS: HerbalProduct[] = [
     rating: 4.88,
     reviewsCount: 165,
     inStock: true,
-    image: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=700&q=80',
+    image: heroApothecaryImg,
     volumeOrWeight: '120g / 4.2 oz tin',
     shortDescription:
       'Marshmallow root, Egyptian Chamomile, Fennel seed, and DGL Licorice blend for gastric comfort and bloating relief.',
@@ -551,7 +562,7 @@ export const HERBAL_PRODUCTS: HerbalProduct[] = [
     rating: 4.92,
     reviewsCount: 198,
     inStock: true,
-    image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=700&q=80',
+    image: resinBalmImg,
     volumeOrWeight: '80g / 2.8 oz glass jar',
     shortDescription:
       'Frankincense resin, 95% curcuminoids, arnica, and camphor infused in organic beeswax for stiff joints and sore muscles.',
@@ -580,7 +591,7 @@ export const HERBAL_PRODUCTS: HerbalProduct[] = [
     rating: 4.91,
     reviewsCount: 112,
     inStock: true,
-    image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=700&q=80',
+    image: amberElixirImg,
     volumeOrWeight: '60ml / 2.0 fl oz dropper',
     shortDescription:
       'Gentle soothing urinary-tract tonic supporting healthy kidney filtration, uric acid balance, and bladder comfort.',
@@ -609,7 +620,7 @@ export const HERBAL_PRODUCTS: HerbalProduct[] = [
     rating: 4.93,
     reviewsCount: 146,
     inStock: true,
-    image: 'https://images.unsplash.com/photo-1512069772995-ec65ed45afd6?auto=format&fit=crop&w=700&q=80',
+    image: heroApothecaryImg,
     volumeOrWeight: '100ml / 3.4 fl oz bottle',
     shortDescription:
       'Traditional Unani hepatic tonic featuring Silymarin-rich Milk Thistle and roasted Chicory root for liver clarity.',
@@ -639,7 +650,7 @@ export const HERBAL_PRODUCTS: HerbalProduct[] = [
     rating: 4.95,
     reviewsCount: 247,
     inStock: true,
-    image: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=700&q=80',
+    image: amberElixirImg,
     volumeOrWeight: '60ml / 2.0 fl oz dropper',
     shortDescription:
       'Clinical KSM-66 Ashwagandha paired with pure Afghan Saffron threads for steady stress resilience and mood clarity.',
@@ -668,7 +679,7 @@ export const HERBAL_PRODUCTS: HerbalProduct[] = [
     rating: 4.93,
     reviewsCount: 174,
     inStock: true,
-    image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=700&q=80',
+    image: heroApothecaryImg,
     volumeOrWeight: '200ml / 6.8 fl oz bottle',
     shortDescription:
       'Soothing bronchial syrup prepared with wild thyme, elderberry, ivy leaf, and raw mountain honey.',
@@ -697,7 +708,7 @@ export const HERBAL_PRODUCTS: HerbalProduct[] = [
     rating: 4.89,
     reviewsCount: 221,
     inStock: true,
-    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=700&q=80',
+    image: amberElixirImg,
     volumeOrWeight: '50ml / 1.7 fl oz dropper',
     shortDescription:
       'Valerian root, skullcap, and passionflower tincture formulated for natural, uninterrupted sleep cycles.',
@@ -725,7 +736,7 @@ export const HERBAL_PRODUCTS: HerbalProduct[] = [
     rating: 4.96,
     reviewsCount: 189,
     inStock: true,
-    image: 'https://images.unsplash.com/photo-1608248597359-566b6960d7b3?auto=format&fit=crop&w=700&q=80',
+    image: resinBalmImg,
     volumeOrWeight: '60ml / 2.0 oz tin',
     shortDescription:
       'Cold-pressed neem seed oil, marigold calendula, and natural beeswax to calm dry, cracked, or reactive skin.',
@@ -759,7 +770,7 @@ export const BLOG_POSTS: BlogPost[] = [
     },
     publishDate: 'November 2026',
     readTime: '5 min read',
-    coverImage: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=1200&q=80',
+    coverImage: heroApothecaryImg,
     summary:
       'How cold-pressed black cumin seed supports seasonal respiratory comfort, metabolic steadiness, and immune balance.',
     content: {
@@ -805,7 +816,7 @@ export const BLOG_POSTS: BlogPost[] = [
     },
     publishDate: 'October 2026',
     readTime: '6 min read',
-    coverImage: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=1200&q=80',
+    coverImage: clinicConsultationImg,
     summary:
       'Pairing soothing marshmallow root mucilage with gentle carminatives like fennel and chamomile for lasting gut comfort.',
     content: {
@@ -849,7 +860,7 @@ export const BLOG_POSTS: BlogPost[] = [
     },
     publishDate: 'October 2026',
     readTime: '5 min read',
-    coverImage: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=1200&q=80',
+    coverImage: resinBalmImg,
     summary:
       'How topical frankincense balms and warm compresses ease morning joint stiffness gently.',
     content: {

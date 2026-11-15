@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Landmark, CheckSquare, Square, CheckCircle2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { BankReconciliationLog, BankRegisterLine } from '../../types/clinic';
 import { calculateReconciliationSummary } from '../../utils/accountingEngine';
+import { useCurrency } from '../../context/CurrencyContext';
 
 interface BankingReconcilePanelProps {
   onRefreshAll: () => void;
@@ -10,6 +11,7 @@ interface BankingReconcilePanelProps {
 export const BankingReconcilePanel: React.FC<BankingReconcilePanelProps> = ({
   onRefreshAll,
 }) => {
+  const { formatPrice } = useCurrency();
   const [accountNumber, setAccountNumber] = useState<'1020' | '1010'>('1020');
   const [bookBalance, setBookBalance] = useState(0);
   const [prevReconciledBalance, setPrevReconciledBalance] = useState(0);
@@ -73,7 +75,7 @@ export const BankingReconcilePanel: React.FC<BankingReconcilePanelProps> = ({
     if (!recSummary.canComplete) {
       setFeedback({
         type: 'err',
-        msg: `Statement difference must be $0.00 before finishing (currently $${recSummary.difference.toFixed(2)}).`,
+        msg: `Statement difference must be ${formatPrice(0)} before finishing (currently ${formatPrice(recSummary.difference)}).`,
       });
       return;
     }
@@ -186,13 +188,13 @@ export const BankingReconcilePanel: React.FC<BankingReconcilePanelProps> = ({
           <div className="p-2.5 rounded-lg bg-[#05110a] border border-[#1b3b2f]">
             <div className="text-[10px] uppercase text-[#8da396]">Book Balance</div>
             <div className="text-sm font-bold font-mono tabular-nums text-[#f5f3ec]">
-              ${bookBalance.toFixed(2)}
+              <span dir="ltr">{formatPrice(bookBalance)}</span>
             </div>
           </div>
           <div className="p-2.5 rounded-lg bg-[#05110a] border border-[#1b3b2f]">
             <div className="text-[10px] uppercase text-[#8da396]">Cleared Balance</div>
             <div className="text-sm font-bold font-mono tabular-nums text-sky-300">
-              ${recSummary.clearedBalance.toFixed(2)}
+              <span dir="ltr">{formatPrice(recSummary.clearedBalance)}</span>
             </div>
           </div>
           <div
@@ -204,7 +206,7 @@ export const BankingReconcilePanel: React.FC<BankingReconcilePanelProps> = ({
           >
             <div className="text-[10px] uppercase">Difference</div>
             <div className="text-sm font-bold font-mono tabular-nums">
-              ${recSummary.difference.toFixed(2)}
+              <span dir="ltr">{formatPrice(recSummary.difference)}</span>
             </div>
           </div>
         </div>
@@ -266,7 +268,7 @@ export const BankingReconcilePanel: React.FC<BankingReconcilePanelProps> = ({
             Account Register ({accountNumber})
           </h4>
           <span className="text-xs font-mono text-[#8da396]">
-            Prior Reconciled Balance: ${prevReconciledBalance.toFixed(2)}
+            Prior Reconciled Balance: <span dir="ltr">{formatPrice(prevReconciledBalance)}</span>
           </span>
         </div>
 
@@ -326,14 +328,14 @@ export const BankingReconcilePanel: React.FC<BankingReconcilePanelProps> = ({
                       <div className="text-[#f5f3ec] font-medium line-clamp-1">{row.memo}</div>
                       <div className="text-[11px] text-[#8da396]">{row.sourceModule}</div>
                     </td>
-                    <td className="py-2.5 px-4 text-right font-mono tabular-nums text-emerald-400">
-                      {row.debit > 0 ? `$${row.debit.toFixed(2)}` : '—'}
+                    <td className="py-2.5 px-4 text-right font-mono tabular-nums text-emerald-400 whitespace-nowrap">
+                      {row.debit > 0 ? <span dir="ltr">{formatPrice(row.debit)}</span> : '—'}
                     </td>
-                    <td className="py-2.5 px-4 text-right font-mono tabular-nums text-amber-300">
-                      {row.credit > 0 ? `$${row.credit.toFixed(2)}` : '—'}
+                    <td className="py-2.5 px-4 text-right font-mono tabular-nums text-amber-300 whitespace-nowrap">
+                      {row.credit > 0 ? <span dir="ltr">{formatPrice(row.credit)}</span> : '—'}
                     </td>
-                    <td className="py-2.5 px-4 text-right font-mono tabular-nums font-bold text-[#f5f3ec]">
-                      ${row.runningBalance.toFixed(2)}
+                    <td className="py-2.5 px-4 text-right font-mono tabular-nums font-bold text-[#f5f3ec] whitespace-nowrap">
+                      <span dir="ltr">{formatPrice(row.runningBalance)}</span>
                     </td>
                   </tr>
                 );
@@ -359,7 +361,7 @@ export const BankingReconcilePanel: React.FC<BankingReconcilePanelProps> = ({
                   Statement {h.statementDate} · {h.clearedLineCount} transactions cleared
                 </span>
                 <span className="font-mono font-bold text-emerald-400 tabular-nums">
-                  Ending Balance: ${h.statementEndingBalance.toFixed(2)} (Diff: $0.00)
+                  Ending Balance: <span dir="ltr">{formatPrice(h.statementEndingBalance)}</span> (Diff: {formatPrice(0)})
                 </span>
               </div>
             ))}

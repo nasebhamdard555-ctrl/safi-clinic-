@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { GlAccountRecord, JournalEntryRecord } from '../../types/clinic';
 import { validateJournalEntry } from '../../utils/accountingEngine';
+import { useCurrency } from '../../context/CurrencyContext';
 
 interface GeneralJournalPanelProps {
   accounts: GlAccountRecord[];
@@ -29,6 +30,7 @@ export const GeneralJournalPanel: React.FC<GeneralJournalPanelProps> = ({
   entries,
   onRefresh,
 }) => {
+  const { formatPrice } = useCurrency();
   const [entryDate, setEntryDate] = useState(new Date().toISOString().slice(0, 10));
   const [memo, setMemo] = useState('');
   const [lines, setLines] = useState<DraftLine[]>([
@@ -105,7 +107,7 @@ export const GeneralJournalPanel: React.FC<GeneralJournalPanelProps> = ({
 
       setFeedback({
         type: 'ok',
-        msg: `Posted Journal Entry ${data.entry.entryNumber} ($${balanceCheck.totalDebits.toFixed(2)} balanced).`,
+        msg: `Posted Journal Entry ${data.entry.entryNumber} (${formatPrice(balanceCheck.totalDebits)} balanced).`,
       });
       setMemo('');
       setLines([
@@ -149,7 +151,7 @@ export const GeneralJournalPanel: React.FC<GeneralJournalPanelProps> = ({
             {balanceCheck.isValid ? (
               <>
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Balanced ($0.00 diff)</span>
+                <span>Balanced ({formatPrice(0)} diff)</span>
               </>
             ) : balanceCheck.totalDebits === 0 && balanceCheck.totalCredits === 0 ? (
               <span>Ready · Enter Debit &amp; Credit Lines</span>
@@ -157,7 +159,7 @@ export const GeneralJournalPanel: React.FC<GeneralJournalPanelProps> = ({
               <>
                 <AlertTriangle className="w-3.5 h-3.5" />
                 <span>
-                  Out of Balance: ${Math.abs(balanceCheck.difference).toFixed(2)}
+                  Out of Balance: {formatPrice(Math.abs(balanceCheck.difference))}
                 </span>
               </>
             )}
@@ -287,11 +289,11 @@ export const GeneralJournalPanel: React.FC<GeneralJournalPanelProps> = ({
                 <td colSpan={2} className="py-2.5 px-3 text-right text-[#a6b6ad]">
                   Voucher Totals
                 </td>
-                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-[#d4af37]">
-                  ${balanceCheck.totalDebits.toFixed(2)}
+                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-[#d4af37] whitespace-nowrap">
+                  <span dir="ltr">{formatPrice(balanceCheck.totalDebits)}</span>
                 </td>
-                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-[#d4af37]">
-                  ${balanceCheck.totalCredits.toFixed(2)}
+                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-[#d4af37] whitespace-nowrap">
+                  <span dir="ltr">{formatPrice(balanceCheck.totalCredits)}</span>
                 </td>
                 <td></td>
               </tr>
@@ -360,8 +362,8 @@ export const GeneralJournalPanel: React.FC<GeneralJournalPanelProps> = ({
                     </span>
                   </div>
                   <div className="flex items-center gap-4 shrink-0">
-                    <span className="font-mono text-xs font-bold text-emerald-400 tabular-nums">
-                      ${entry.totalDebits.toFixed(2)}
+                    <span dir="ltr" className="font-mono text-xs font-bold text-emerald-400 tabular-nums whitespace-nowrap">
+                      {formatPrice(entry.totalDebits)}
                     </span>
                     {isOpen ? (
                       <ChevronUp className="w-4 h-4 text-[#8da396]" />
@@ -395,11 +397,11 @@ export const GeneralJournalPanel: React.FC<GeneralJournalPanelProps> = ({
                             <td className="py-1.5 px-2 text-[#8da396]">
                               {line.description || '-'}
                             </td>
-                            <td className="py-1.5 px-2 text-right font-mono tabular-nums text-[#f5f3ec]">
-                              {line.debit > 0 ? `$${line.debit.toFixed(2)}` : '—'}
+                            <td className="py-1.5 px-2 text-right font-mono tabular-nums text-[#f5f3ec] whitespace-nowrap">
+                              {line.debit > 0 ? <span dir="ltr">{formatPrice(line.debit)}</span> : '—'}
                             </td>
-                            <td className="py-1.5 px-2 text-right font-mono tabular-nums text-[#a6b6ad]">
-                              {line.credit > 0 ? `$${line.credit.toFixed(2)}` : '—'}
+                            <td className="py-1.5 px-2 text-right font-mono tabular-nums text-[#a6b6ad] whitespace-nowrap">
+                              {line.credit > 0 ? <span dir="ltr">{formatPrice(line.credit)}</span> : '—'}
                             </td>
                           </tr>
                         ))}

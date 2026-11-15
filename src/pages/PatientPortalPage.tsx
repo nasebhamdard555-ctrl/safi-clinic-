@@ -36,6 +36,9 @@ import {
   PatientOrderRecord,
 } from '../types/clinic';
 import { CLINIC_PROFILE } from '../data/clinicData';
+import { useLanguage } from '../context/LanguageContext';
+import { pickLocalized } from '../utils/i18n';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface PatientPortalPageProps {
   onOpenBooking: (serviceId?: string) => void;
@@ -50,6 +53,9 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
   onNavigateToContact,
 }) => {
   const { user, loading: authLoading, signInWithGoogle, signOut, getIdToken } = useAuth();
+  const { language, t } = useLanguage();
+  const { formatPrice } = useCurrency();
+  const tx = <T,>(en: T, ps: T, fa: T) => pickLocalized(language, { en, ps, fa });
 
   const [activeTab, setActiveTab] = useState<'protocols' | 'appointments' | 'orders' | 'mizaj'>('protocols');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -168,7 +174,7 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
         });
       }
 
-      setActionSuccessMessage('Dose logged successfully! Tabiat vital force strengthened.');
+      setActionSuccessMessage(t.portal.doseLoggedMsg);
       setTimeout(() => setActionSuccessMessage(null), 4000);
     } catch (e) {
       console.error('Failed to log dose:', e);
@@ -206,13 +212,13 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
     : 'SNC-GUEST';
 
   return (
-    <div className="pt-24 lg:pt-32 pb-24 min-h-screen bg-[#050e18] text-[#f0f4f8] relative selection:bg-[#38bdf8] selection:text-black">
-      {/* Page Ambient Royal Sapphire & Emerald Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[550px] bg-gradient-to-b from-sky-600/20 via-emerald-950/20 to-transparent blur-[150px] pointer-events-none -z-10" />
+    <div className="pt-24 lg:pt-32 pb-24 min-h-screen bg-[#06120D] text-[#F4F0E6] relative overflow-x-hidden selection:bg-[#D4AF37] selection:text-[#06110C]">
+      {/* Page Ambient Deep Emerald & Gold Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1100px] h-[550px] bg-gradient-to-b from-emerald-700/20 via-[#0B1D14]/20 to-transparent blur-[150px] pointer-events-none -z-10" />
 
       {/* Header Notification Toast */}
       {actionSuccessMessage && (
-        <div className="fixed top-24 right-4 z-50 bg-[#0c2438] border border-sky-400 text-sky-200 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-4">
+        <div className="fixed top-24 end-4 z-50 bg-[#0c2438] border border-sky-400 text-sky-200 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-4">
           <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0" />
           <span className="text-xs font-semibold">{actionSuccessMessage}</span>
         </div>
@@ -225,63 +231,63 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
           <div className="text-center max-w-3xl mx-auto space-y-4">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#091b2c] border border-sky-400/40 text-sky-300 text-xs font-semibold uppercase tracking-widest shadow-md">
               <Lock className="w-3.5 h-3.5 text-sky-400" />
-              <span>Secure Patient Health Records</span>
+              <span>{t.portal.badge}</span>
             </div>
 
             <h1 className="font-serif-classic text-3xl sm:text-4xl lg:text-5xl font-bold text-[#f0f4f8]">
-              Patient Health History & Dispensary Records
+              {t.portal.title}
             </h1>
 
             <p className="text-xs sm:text-sm text-[#94a9be] leading-relaxed max-w-2xl mx-auto">
-              Access your confidential consultation history, personalized Unani herbal protocols, dosage schedules, and dispensary orders at Safi Natural Care Clinic.
+              {t.portal.subtitle}
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Authenticated Sign In Card */}
             <div className="lg:col-span-7 p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-[#091b2c] via-[#061421] to-[#040d16] border border-sky-500/40 shadow-2xl space-y-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute top-0 end-0 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
-              <div className="flex items-center justify-between pb-4 border-b border-[#1b3552]">
+              <div className="flex items-center justify-between gap-3 pb-4 border-b border-[#1b3552]">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-[#0e2a44] border border-sky-400/40 flex items-center justify-center text-sky-400">
+                  <div className="w-12 h-12 rounded-2xl bg-[#0e2a44] border border-sky-400/40 flex items-center justify-center text-sky-400 shrink-0">
                     <ShieldCheck className="w-6 h-6" />
                   </div>
                   <div>
                     <h2 className="font-serif-classic font-bold text-lg text-[#f0f4f8]">
-                      Verified Patient Sign-In
+                      {t.portal.signInTitle}
                     </h2>
                     <p className="text-[11px] text-[#829bb5]">
-                      End-to-End Encrypted Cloud Health Records
+                      {t.portal.signInSub}
                     </p>
                   </div>
                 </div>
-                <span className="px-2.5 py-1 rounded bg-[#0b2236] border border-sky-400/30 text-sky-300 text-[10px] font-bold uppercase">
-                  HIPAA & TCIM Compliant
+                <span className="px-2.5 py-1 rounded bg-[#0b2236] border border-sky-400/30 text-sky-300 text-[10px] font-bold uppercase shrink-0">
+                  {t.treatments.mophBadge}
                 </span>
               </div>
 
               <div className="space-y-4">
                 <p className="text-xs text-[#a3b8cd] leading-relaxed">
-                  Sign in with your verified account to review your full clinical dossiers, track daily botanical regimens prescribed by Dr. Hafizullah Safi and the Safi Clinical Care Team, and manage dispensary refills.
+                  {t.portal.signInDesc}
                 </p>
 
                 <div className="p-4 rounded-xl bg-[#061523] border border-[#1b3552] space-y-2.5 text-xs text-[#8da3bb]">
                   <div className="flex items-center gap-2 text-[#d4af37]">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span className="font-semibold text-emerald-300">Complete Consultation & Telehealth Records</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span className="font-semibold text-emerald-300">{t.portal.tabAppointments}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span>Prescribed Botanical Dosing Schedules & Adherence Logs</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{t.portal.tabProtocols}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span>Dispensary Order Tracking & 1-Click Refill Reorder</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{t.portal.tabOrders}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span>Unani Constitutional Mizaj & Humoral Diagnosis Map</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{t.portal.tabMizaj}</span>
                   </div>
                 </div>
 
@@ -291,13 +297,13 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                   className="w-full py-4 rounded-xl bg-gradient-to-r from-sky-500 via-sky-400 to-[#d4af37] text-black font-bold text-sm uppercase tracking-wider shadow-xl hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50"
                 >
                   <LogIn className="w-4 h-4 text-black" />
-                  <span>Sign In With Verified Google Account</span>
+                  <span>{t.portal.signInBtn}</span>
                 </button>
               </div>
 
-              <div className="pt-4 border-t border-[#1b3552] flex items-center justify-between text-[11px] text-[#708aa4]">
-                <span>Ministry of Public Health (MoPH) Compliant</span>
-                <span>Kabul, Afghanistan</span>
+              <div className="pt-4 border-t border-[#1b3552] flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#708aa4]">
+                <span>{t.treatments.mophBadge}</span>
+                <span>{t.brand.cityCountry}</span>
               </div>
             </div>
 
@@ -305,24 +311,25 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
             <div className="lg:col-span-5 p-8 rounded-3xl bg-[#081726] border border-[#1b3552] space-y-5">
               <div className="flex items-center gap-2 text-xs font-semibold text-[#d4af37] uppercase tracking-wider">
                 <Search className="w-4 h-4 text-[#d4af37]" />
-                <span>Instant Appointment Lookup</span>
+                <span>{t.portal.lookupTitle}</span>
               </div>
 
               <div>
                 <h3 className="font-serif-classic font-bold text-base text-[#f0f4f8]">
-                  Find Your Visit by Reference
+                  {t.portal.lookupHeading}
                 </h3>
                 <p className="text-xs text-[#8da3bb] mt-1">
-                  Enter your appointment booking reference (e.g. <code className="text-sky-300">SNC-XXXXXX</code>) or patient phone number to retrieve your confirmation instantly.
+                  {t.portal.lookupSub}
                 </p>
               </div>
 
               <form onSubmit={handlePerformLookup} className="space-y-3">
                 <input
                   type="text"
+                  dir="ltr"
                   value={lookupQuery}
                   onChange={(e) => setLookupQuery(e.target.value)}
-                  placeholder="e.g. SNC-123456 or +93 780 299 299"
+                  placeholder="SNC-123456 / +93 780 299 299"
                   className="w-full px-4 py-3 rounded-xl bg-[#05111d] border border-[#1b3552] text-xs text-[#f0f4f8] placeholder-[#5c7590] focus:outline-none focus:border-sky-400 transition-colors"
                 />
 
@@ -336,7 +343,7 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                   ) : (
                     <Search className="w-4 h-4" />
                   )}
-                  <span>Search Appointment</span>
+                  <span>{t.portal.searchAptBtn}</span>
                 </button>
               </form>
 
@@ -344,12 +351,16 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
               {lookupResults && (
                 <div className="pt-3 border-t border-[#1b3552] space-y-3">
                   <span className="text-[10px] uppercase tracking-wider text-sky-400 font-semibold block">
-                    Search Results ({lookupResults.length})
+                    {tx('Search Results', 'د لټون پایلې', 'نتایج جستجو')} ({lookupResults.length})
                   </span>
 
                   {lookupResults.length === 0 ? (
                     <div className="p-3 rounded-xl bg-[#05111d] border border-amber-900/40 text-amber-300 text-xs">
-                      No matching appointment found. Please check your reference number or sign in.
+                      {tx(
+                        'No matching appointment found. Please check your reference number or sign in.',
+                        'هیڅ ورته نوبت ونه موندل شو. مهرباني وکړئ خپله کوډ شمېره وګورئ یا ننوځئ.',
+                        'هیچ نوبت مطابقی یافت نشد. لطفاً کد پیگیری را بررسی کنید یا وارد شوید.'
+                      )}
                     </div>
                   ) : (
                     lookupResults.map((res) => (
@@ -358,16 +369,18 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                         className="p-3.5 rounded-xl bg-[#05111d] border border-sky-500/30 space-y-1.5 text-xs"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-[11px] font-bold text-sky-300">
+                          <span className="font-mono text-[11px] font-bold text-sky-300" dir="ltr">
                             {res.referenceNumber}
                           </span>
                           <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 text-[10px] font-semibold">
                             {res.status}
                           </span>
                         </div>
-                        <div className="font-semibold text-[#f0f4f8]">{res.serviceTitle}</div>
+                        <div className="font-semibold text-[#f0f4f8]">
+                          {t.servicesMap[res.serviceId]?.title || res.serviceTitle}
+                        </div>
                         <div className="text-[11px] text-[#8da3bb]">
-                          {res.date} at {res.timeSlot} · {res.practitionerName}
+                          <span dir="ltr">{res.date} · {res.timeSlot}</span> · {res.practitionerName}
                         </div>
                       </div>
                     ))
@@ -382,7 +395,7 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
         <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-10">
           {/* Patient Profile Card & Health Summary */}
           <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-[#091f33] via-[#061524] to-[#040e18] border border-sky-500/40 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-1/4 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-0 end-1/4 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-[#1b3552]">
               {/* Patient Bio & Avatar */}
@@ -399,28 +412,30 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                       {(user.displayName || user.email || 'P')[0].toUpperCase()}
                     </div>
                   )}
-                  <div className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-black" title="Active Patient" />
+                  <div className="absolute bottom-1 end-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-black" title={tx('Active Patient', 'فعال ناروغ', 'بیمار فعال')} />
                 </div>
 
                 <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h1 className="font-serif-classic text-2xl sm:text-3xl font-bold text-[#f0f4f8]">
-                      {user.displayName || 'Honored Patient'}
+                      {user.displayName || tx('Honored Patient', 'محترم ناروغ', 'بیمار گرامی')}
                     </h1>
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#0b243b] border border-sky-400/40 text-sky-300 font-mono text-[11px] font-bold">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#0b243b] border border-sky-400/40 text-sky-300 font-mono text-[11px] font-bold" dir="ltr">
                       {patientMrn}
                     </span>
                   </div>
 
-                  <p className="text-xs text-[#8fa7c0]">{user.email}</p>
+                  <p className="text-xs text-[#8fa7c0]" dir="ltr">{user.email}</p>
 
                   <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-[#708aa4]">
                     <span className="flex items-center gap-1 text-emerald-400">
                       <ShieldCheck className="w-3.5 h-3.5" />
-                      Verified Patient Record
+                      {tx('Verified Patient Record', 'تایید شوی د ناروغ دوسیه', 'پرونده تاییدشده بیمار')}
                     </span>
                     <span>·</span>
-                    <span className="text-sky-300">Constitutional Mizaj: Dam (Warm & Moist)</span>
+                    <span className="text-sky-300">
+                      {tx('Constitutional Mizaj: Dam (Warm & Moist)', 'طبیعي مزاج: دم (ګرم او مرطوب)', 'مزاج سرشتی: دم (گرم و تر)')}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -432,7 +447,7 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                   className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-[#d4af37] text-black font-bold text-xs uppercase tracking-wider shadow-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <Calendar className="w-4 h-4 text-black" />
-                  <span>Book Consultation</span>
+                  <span>{t.portal.bookConsultBtn}</span>
                 </button>
 
                 <button
@@ -440,7 +455,7 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                   className="px-3.5 py-2.5 rounded-xl bg-[#081726] border border-[#1b3552] hover:border-red-400 text-xs font-semibold text-[#8fa7c0] hover:text-red-300 transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span>Sign Out</span>
+                  <span>{t.portal.signOutBtn}</span>
                 </button>
               </div>
             </div>
@@ -449,42 +464,42 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6">
               <div className="p-4 rounded-2xl bg-[#051321] border border-[#1b3552] space-y-1">
                 <span className="text-[10px] text-[#708aa4] uppercase font-semibold block">
-                  Active Protocols
+                  {tx('Active Protocols', 'فعال پروتوکولونه', 'پروتکل‌های فعال')}
                 </span>
-                <div className="font-serif-classic text-2xl font-bold text-sky-400">
+                <div className="font-serif-classic text-2xl font-bold text-sky-400 tabular-nums" dir="ltr">
                   {protocols.filter((p) => p.status === 'Active').length || 2}
                 </div>
-                <span className="text-[10px] text-emerald-400">Botanical Prescriptions</span>
+                <span className="text-[10px] text-emerald-400">{tx('Botanical Prescriptions', 'بوټي نسخې', 'نسخه‌های گیاهی')}</span>
               </div>
 
               <div className="p-4 rounded-2xl bg-[#051321] border border-[#1b3552] space-y-1">
                 <span className="text-[10px] text-[#708aa4] uppercase font-semibold block">
-                  Clinical Visits
+                  {tx('Clinical Visits', 'کلینیکي لیدنې', 'ویزیت‌های کلینیکی')}
                 </span>
-                <div className="font-serif-classic text-2xl font-bold text-[#d4af37]">
+                <div className="font-serif-classic text-2xl font-bold text-[#d4af37] tabular-nums" dir="ltr">
                   {appointments.length}
                 </div>
-                <span className="text-[10px] text-[#8fa7c0]">Consultations Tracked</span>
+                <span className="text-[10px] text-[#8fa7c0]">{tx('Consultations Tracked', 'ثبت شوې مشورې', 'مشاوره‌های ثبت‌شده')}</span>
               </div>
 
               <div className="p-4 rounded-2xl bg-[#051321] border border-[#1b3552] space-y-1">
                 <span className="text-[10px] text-[#708aa4] uppercase font-semibold block">
-                  Dispensary Orders
+                  {tx('Dispensary Orders', 'د دواخانې فرمایشونه', 'سفارش‌های دواخانه')}
                 </span>
-                <div className="font-serif-classic text-2xl font-bold text-emerald-400">
+                <div className="font-serif-classic text-2xl font-bold text-emerald-400 tabular-nums" dir="ltr">
                   {orders.length}
                 </div>
-                <span className="text-[10px] text-[#8fa7c0]">Herbal Remedies</span>
+                <span className="text-[10px] text-[#8fa7c0]">{tx('Herbal Remedies', 'ګیاهي درمل', 'داروهای گیاهی')}</span>
               </div>
 
               <div className="p-4 rounded-2xl bg-[#051321] border border-[#1b3552] space-y-1">
                 <span className="text-[10px] text-[#708aa4] uppercase font-semibold block">
-                  Regimen Adherence
+                  {tx('Regimen Adherence', 'د رژیم تعقیب', 'پیروی از رژیم درمانی')}
                 </span>
-                <div className="font-serif-classic text-2xl font-bold text-[#f0f4f8]">
+                <div className="font-serif-classic text-2xl font-bold text-[#f0f4f8] tabular-nums" dir="ltr">
                   96%
                 </div>
-                <span className="text-[10px] text-sky-300">Tabiat Healing Index</span>
+                <span className="text-[10px] text-sky-300">{tx('Tabiat Healing Index', 'د طبیعت د رغېدو شاخص', 'شاخص نیروی طبیعت')}</span>
               </div>
             </div>
           </div>
@@ -494,25 +509,25 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
             {[
               {
                 id: 'protocols',
-                label: 'Recommended Herbal Protocols',
+                label: t.portal.tabProtocols,
                 icon: Pill,
                 count: protocols.length || 2,
               },
               {
                 id: 'appointments',
-                label: 'Clinical Consultations',
+                label: t.portal.tabAppointments,
                 icon: Calendar,
                 count: appointments.length,
               },
               {
                 id: 'orders',
-                label: 'Dispensary Purchase History',
+                label: t.portal.tabOrders,
                 icon: ShoppingBag,
                 count: orders.length,
               },
               {
                 id: 'mizaj',
-                label: 'Unani Temperament & Humors',
+                label: t.portal.tabMizaj,
                 icon: Activity,
                 count: null,
               },
@@ -531,7 +546,7 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                   <Icon className="w-4 h-4" />
                   <span>{tab.label}</span>
                   {tab.count !== null && (
-                    <span className="px-1.5 py-0.5 rounded-full bg-black/50 text-[10px] text-sky-400">
+                    <span className="px-1.5 py-0.5 rounded-full bg-black/50 text-[10px] text-sky-400 tabular-nums" dir="ltr">
                       {tab.count}
                     </span>
                   )}
@@ -546,10 +561,14 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h2 className="font-serif-classic text-xl sm:text-2xl font-bold text-[#f0f4f8]">
-                    Personalized Botanical Prescriptions & Regimens
+                    {t.portal.tabProtocols}
                   </h2>
                   <p className="text-xs text-[#8fa7c0] mt-1">
-                    Formulated according to your individual constitutional temperament (Mizaj) by Safi clinical herbalists.
+                    {tx(
+                      'Formulated according to your individual constitutional temperament (Mizaj) by Safi clinical herbalists.',
+                      'ستاسو د شخصي مزاج له مخې د صافي کلینیک د متخصصینو لخوا چمتو شوي.',
+                      'بر اساس مزاج سرشتی شما توسط متخصصان کلینیک صافی تنظیم شده است.'
+                    )}
                   </p>
                 </div>
 
@@ -558,8 +577,8 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                     onClick={() => onOpenBooking()}
                     className="px-3.5 py-2 rounded-lg bg-[#081b2d] border border-sky-400/40 text-xs font-semibold text-sky-300 hover:bg-sky-500 hover:text-black transition-all cursor-pointer flex items-center gap-1.5"
                   >
-                    <span>Request Protocol Refill or Update</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <span>{t.portal.bookConsultBtn}</span>
+                    <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
                   </button>
                 </div>
               </div>
@@ -620,11 +639,11 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                           </p>
                         </div>
 
-                        <div className="text-right">
+                        <div className="text-end">
                           <span className="text-[10px] text-[#708aa4] block uppercase font-semibold">
-                            Adherence
+                            {tx('Adherence', 'تعقیب', 'پیگیری')}
                           </span>
-                          <span className="font-mono text-sm font-bold text-emerald-400">
+                          <span className="font-mono text-sm font-bold text-emerald-400 tabular-nums" dir="ltr">
                             {proto.adherenceRate}%
                           </span>
                         </div>
@@ -684,14 +703,14 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                     {/* Protocol Action Footer */}
                     <div className="pt-4 border-t border-[#1b3552] flex items-center justify-between gap-3">
                       <span className="text-[11px] text-[#708aa4]">
-                        Duration: {proto.durationWeeks} Weeks
+                        {tx('Duration', 'موده', 'مدت')}: {proto.durationWeeks} {tx('Weeks', 'اونۍ', 'هفته')}
                       </span>
                       <button
                         onClick={() => handleCheckInDose(proto.id)}
                         className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-black font-bold text-xs uppercase tracking-wider shadow-md hover:brightness-110 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5 text-black" />
-                        <span>Log Today's Dose</span>
+                        <span>{tx("Log Today's Dose", 'د نن ورځې خوراک ثبت کړئ', 'ثبت دوز امروز')}</span>
                       </button>
                     </div>
                   </div>
@@ -706,10 +725,14 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h2 className="font-serif-classic text-xl sm:text-2xl font-bold text-[#f0f4f8]">
-                    Clinical Consultation History
+                    {t.portal.tabAppointments}
                   </h2>
                   <p className="text-xs text-[#8fa7c0] mt-1">
-                    Your scheduled outpatient visits, clinical notes, and diagnostic reviews at Kabul clinic or via telehealth video.
+                    {tx(
+                      'Your scheduled outpatient visits, clinical notes, and diagnostic reviews at Kabul clinic or via telehealth video.',
+                      'د کابل کلینیک یا انلاین ویډیوي مشورې لپاره ستاسو ثبت شوي نوبتونه.',
+                      'ویزیت‌های حضوری ثبت‌شده شما در کلینیک کابل یا از طریق مشاوره ویدیویی.'
+                    )}
                   </p>
                 </div>
 
@@ -718,7 +741,7 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                   className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-[#d4af37] text-black font-bold text-xs uppercase tracking-wider shadow-md hover:brightness-110 cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
                 >
                   <Calendar className="w-3.5 h-3.5 text-black" />
-                  <span>Book New Appointment</span>
+                  <span>{t.portal.bookConsultBtn}</span>
                 </button>
               </div>
 
@@ -728,16 +751,20 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                     <Calendar className="w-6 h-6" />
                   </div>
                   <h3 className="font-serif-classic font-bold text-lg text-[#f0f4f8]">
-                    No Prior Consultations Recorded
+                    {tx('No Prior Consultations Recorded', 'تر اوسه مخکینۍ مشورې نه دي ثبت شوي', 'هنوز مشاوره قبلی ثبت نشده است')}
                   </h3>
                   <p className="text-xs text-[#8fa7c0] max-w-md mx-auto">
-                    You have not yet attended an outpatient or telehealth consultation. Schedule your first appointment to establish your constitutional health record.
+                    {tx(
+                      'You have not yet attended an outpatient or telehealth consultation. Schedule your first appointment to establish your constitutional health record.',
+                      'تاسو لا تر اوسه کلینیکي یا انلاین مشوره نه ده اخیستې. خپل لومړنی نوبت وټاکئ.',
+                      'شما هنوز مشاوره حضوری یا آنلاین ثبت نکرده‌اید. اولین نوبت خود را تنظیم کنید.'
+                    )}
                   </p>
                   <button
                     onClick={() => onOpenBooking()}
                     className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-[#d4af37] text-black font-bold text-xs uppercase tracking-wider shadow-md hover:brightness-110 cursor-pointer"
                   >
-                    Schedule First Consultation
+                    {t.portal.bookConsultBtn}
                   </button>
                 </div>
               ) : (
@@ -749,7 +776,7 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                     >
                       <div className="space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-mono text-xs font-bold text-sky-300">
+                          <span className="font-mono text-xs font-bold text-sky-300" dir="ltr">
                             {apt.referenceNumber}
                           </span>
                           <span className="px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 text-[10px] font-bold uppercase">
@@ -761,13 +788,13 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                         </div>
 
                         <h4 className="font-serif-classic font-bold text-base text-[#f0f4f8]">
-                          {apt.serviceTitle}
+                          {t.servicesMap[apt.serviceId]?.title || apt.serviceTitle}
                         </h4>
 
                         <div className="flex flex-wrap items-center gap-4 text-xs text-[#8fa7c0]">
-                          <span className="flex items-center gap-1.5">
+                          <span className="flex items-center gap-1.5" dir="ltr">
                             <Clock className="w-3.5 h-3.5 text-sky-400" />
-                            {apt.date} at {apt.timeSlot}
+                            {apt.date} · {apt.timeSlot}
                           </span>
                           <span>·</span>
                           <span className="flex items-center gap-1.5 text-[#d4af37]">
@@ -775,14 +802,14 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                             {apt.practitionerName}
                           </span>
                           <span>·</span>
-                          <span className="font-semibold text-emerald-400">
-                            Fee: ${apt.totalFee}
+                          <span className="font-semibold text-emerald-400 tabular-nums" dir="ltr">
+                            {formatPrice(apt.totalFee, { compactDecimals: true })}
                           </span>
                         </div>
 
                         {apt.patient && apt.patient.healthConcerns && (
                           <p className="text-xs text-[#8fa7c0] italic pt-1">
-                            Primary Health Concern: "{apt.patient.healthConcerns}"
+                            "{apt.patient.healthConcerns}"
                           </p>
                         )}
                       </div>
@@ -797,14 +824,14 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                           className="px-4 py-2 rounded-xl bg-[#051321] border border-[#1b3552] hover:border-emerald-400 text-xs font-semibold text-emerald-300 flex items-center gap-1.5 transition-colors"
                         >
                           <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
-                          <span>WhatsApp Desk</span>
+                          <span>{t.contact.whatsappBtn}</span>
                         </a>
 
                         <button
                           onClick={() => onOpenBooking(apt.serviceId)}
                           className="px-4 py-2 rounded-xl bg-[#0e2a44] border border-sky-400/40 hover:bg-sky-500 hover:text-black text-xs font-semibold text-sky-200 transition-all cursor-pointer"
                         >
-                          Book Follow-Up
+                          {t.portal.bookConsultBtn}
                         </button>
                       </div>
                     </div>
@@ -820,10 +847,10 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h2 className="font-serif-classic text-xl sm:text-2xl font-bold text-[#f0f4f8]">
-                    Apothecary & Dispensary Orders
+                    {t.portal.tabOrders}
                   </h2>
                   <p className="text-xs text-[#8fa7c0] mt-1">
-                    Authentic unadulterated herbal elixirs, organic tinctures, and traditional Unani compounds shipped to your door.
+                    {t.shop.pageSub}
                   </p>
                 </div>
 
@@ -832,7 +859,7 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                   className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-[#d4af37] text-black font-bold text-xs uppercase tracking-wider shadow-md hover:brightness-110 cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
                 >
                   <ShoppingBag className="w-3.5 h-3.5 text-black" />
-                  <span>Browse Herbal Dispensary</span>
+                  <span>{t.cart.browseBtn}</span>
                 </button>
               </div>
 
@@ -842,16 +869,16 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                     <ShoppingBag className="w-6 h-6" />
                   </div>
                   <h3 className="font-serif-classic font-bold text-lg text-[#f0f4f8]">
-                    No Dispensary Orders Found
+                    {tx('No Dispensary Orders Found', 'د دواخانې هیڅ فرمایش ونه موندل شو', 'هیچ سفارشی از دواخانه ثبت نشده است')}
                   </h3>
                   <p className="text-xs text-[#8fa7c0] max-w-md mx-auto">
-                    You haven't ordered any compounded herbal formulas or teas yet. Discover our pure cold-pressed Black Seed Elixir, KSM-66 Saffron Tonic, and Shilajit Gold Resin.
+                    {t.cart.emptySub}
                   </p>
                   <button
                     onClick={() => onNavigateToShop()}
                     className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-[#d4af37] text-black font-bold text-xs uppercase tracking-wider shadow-md hover:brightness-110 cursor-pointer"
                   >
-                    Visit Dispensary Shop
+                    {t.cart.browseBtn}
                   </button>
                 </div>
               ) : (
@@ -872,24 +899,24 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#14293f]">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
-                              <span className="font-mono text-xs font-bold text-sky-300">
-                                Order {ord.referenceNumber}
+                              <span className="font-mono text-xs font-bold text-sky-300" dir="ltr">
+                                #{ord.referenceNumber}
                               </span>
                               <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 text-[10px] font-semibold">
                                 {ord.status}
                               </span>
                             </div>
                             <span className="text-[11px] text-[#708aa4]">
-                              Destination: {ord.city}, {ord.country}
+                              {ord.city}, {ord.country}
                             </span>
                           </div>
 
-                          <div className="text-right">
+                          <div className="text-end">
                             <span className="text-[10px] text-[#708aa4] uppercase font-semibold block">
-                              Total Invoiced
+                              {t.checkout.totalPaid}
                             </span>
-                            <span className="font-serif-classic text-lg font-bold text-[#d4af37]">
-                              ${ord.total}
+                            <span className="font-serif-classic text-lg font-bold text-[#d4af37] tabular-nums" dir="ltr">
+                              {formatPrice(ord.total, { compactDecimals: true })}
                             </span>
                           </div>
                         </div>
@@ -912,8 +939,8 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                                 <h5 className="font-serif-classic font-bold text-xs text-[#f0f4f8] truncate">
                                   {item.name}
                                 </h5>
-                                <p className="text-[10px] text-[#8fa7c0]">
-                                  Qty: {item.quantity} · ${item.price} each
+                                <p className="text-[10px] text-[#8fa7c0] tabular-nums" dir="ltr">
+                                  Qty: {item.quantity} · {formatPrice(item.price, { compactDecimals: true })}
                                 </p>
                               </div>
                             </div>
@@ -932,84 +959,62 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
             <div className="p-8 sm:p-10 rounded-3xl bg-[#071626] border border-[#1b3552] space-y-8">
               <div className="max-w-2xl space-y-2">
                 <span className="text-xs uppercase tracking-widest text-[#d4af37] font-semibold">
-                  Classical Unani-Tibb Diagnosis
+                  {t.symptoms.mizajSectionKicker}
                 </span>
                 <h2 className="font-serif-classic text-2xl sm:text-3xl font-bold text-[#f0f4f8]">
-                  Your Constitutional Temperament (Mizaj) Profile
+                  {t.symptoms.mizajSectionTitle}
                 </h2>
                 <p className="text-xs sm:text-sm text-[#8fa7c0] leading-relaxed">
-                  In Unani medicine, health is the state of dynamic equilibrium between the four bodily humors (Akhlat). Your primary constitutional baseline is diagnosed as:
+                  {t.symptoms.mizajSectionSub}
                 </p>
               </div>
 
               {/* 4 Humors Matrix Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div className="p-5 rounded-2xl bg-[#092238] border-2 border-sky-400 space-y-3 relative">
-                  <div className="flex items-center justify-between">
-                    <span className="w-8 h-8 rounded-lg bg-sky-400/20 text-sky-400 flex items-center justify-center font-bold">
-                      <Droplets className="w-4 h-4" />
-                    </span>
-                    <span className="px-2 py-0.5 rounded bg-sky-400 text-black text-[10px] font-bold uppercase">
-                      Dominant
-                    </span>
-                  </div>
-                  <h4 className="font-serif-classic font-bold text-base text-[#f0f4f8]">
-                    Dam (Blood Humor)
-                  </h4>
-                  <p className="text-xs text-sky-200 font-medium">Warm & Moist (Air Element)</p>
-                  <p className="text-[11px] text-[#8fa7c0] leading-relaxed">
-                    Naturally optimistic, strong circulation, robust appetite. Responds best to bitter tonics, Nigella sativa, and gentle seasonal hijama cupping.
-                  </p>
-                </div>
-
-                <div className="p-5 rounded-2xl bg-[#040e19] border border-[#14293f] space-y-3">
-                  <span className="w-8 h-8 rounded-lg bg-amber-400/15 text-amber-400 flex items-center justify-center font-bold">
-                    <Flame className="w-4 h-4" />
-                  </span>
-                  <h4 className="font-serif-classic font-bold text-base text-[#f0f4f8]">
-                    Safra (Yellow Bile)
-                  </h4>
-                  <p className="text-xs text-amber-300 font-medium">Hot & Dry (Fire Element)</p>
-                  <p className="text-[11px] text-[#8fa7c0] leading-relaxed">
-                    Sharp digestion, acute mental focus, prone to acidity and inflammatory flare-ups. Balanced with demulcent marshmallow root and chamomile.
-                  </p>
-                </div>
-
-                <div className="p-5 rounded-2xl bg-[#040e19] border border-[#14293f] space-y-3">
-                  <span className="w-8 h-8 rounded-lg bg-teal-400/15 text-teal-400 flex items-center justify-center font-bold">
-                    <Wind className="w-4 h-4" />
-                  </span>
-                  <h4 className="font-serif-classic font-bold text-base text-[#f0f4f8]">
-                    Balgham (Phlegm)
-                  </h4>
-                  <p className="text-xs text-teal-300 font-medium">Cold & Moist (Water Element)</p>
-                  <p className="text-[11px] text-[#8fa7c0] leading-relaxed">
-                    Calm, steady, slow metabolism, prone to bronchial congestion and damp joint discomfort. Energized by pure Shilajit resin and warming ginger.
-                  </p>
-                </div>
-
-                <div className="p-5 rounded-2xl bg-[#040e19] border border-[#14293f] space-y-3">
-                  <span className="w-8 h-8 rounded-lg bg-purple-400/15 text-purple-400 flex items-center justify-center font-bold">
-                    <Heart className="w-4 h-4" />
-                  </span>
-                  <h4 className="font-serif-classic font-bold text-base text-[#f0f4f8]">
-                    Sawda (Black Bile)
-                  </h4>
-                  <p className="text-xs text-purple-300 font-medium">Cold & Dry (Earth Element)</p>
-                  <p className="text-[11px] text-[#8fa7c0] leading-relaxed">
-                    Analytical, sensitive nervous system, prone to sleeplessness and dryness. Restored by KSM-66 Ashwagandha and saffron milk elixirs.
-                  </p>
-                </div>
+                {t.symptoms.mizajGuides.map((g, idx) => {
+                  const icons = [Droplets, Flame, Wind, Heart];
+                  const Icon = icons[idx % icons.length];
+                  const isDominant = idx === 0;
+                  return (
+                    <div
+                      key={g.mizaj}
+                      className={`p-5 rounded-2xl space-y-3 relative ${
+                        isDominant
+                          ? 'bg-[#092238] border-2 border-sky-400'
+                          : 'bg-[#040e19] border border-[#14293f]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="w-8 h-8 rounded-lg bg-sky-400/15 text-sky-400 flex items-center justify-center font-bold">
+                          <Icon className="w-4 h-4" />
+                        </span>
+                        {isDominant && (
+                          <span className="px-2 py-0.5 rounded bg-sky-400 text-black text-[10px] font-bold uppercase">
+                            {t.symptoms.unaniPillarBadge}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="font-serif-classic font-bold text-base text-[#f0f4f8]">
+                        {g.mizaj}
+                      </h4>
+                      <p className="text-xs text-sky-200 font-medium">{g.qualities}</p>
+                      <p className="text-[11px] text-[#8fa7c0] leading-relaxed">
+                        <strong className="text-[#d4af37]">{t.symptoms.balancingLabel} </strong>
+                        {g.herbs}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Consultation Doctor Note */}
               <div className="p-6 rounded-2xl bg-[#040e19] border border-[#1b3552] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
                   <h4 className="font-serif-classic font-bold text-sm text-[#f0f4f8]">
-                    Need a Constitutional Temperament Re-assessment?
+                    {t.symptoms.ctaTitle}
                   </h4>
                   <p className="text-xs text-[#8fa7c0]">
-                    Your pulse and tongue indicators shift during seasonal transitions. Book a 30-minute follow-up with Dr. Hafizullah Safi to adjust your formulation.
+                    {t.symptoms.ctaSub}
                   </p>
                 </div>
 
@@ -1017,7 +1022,7 @@ export const PatientPortalPage: React.FC<PatientPortalPageProps> = ({
                   onClick={() => onOpenBooking()}
                   className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-[#d4af37] text-black font-bold text-xs uppercase tracking-wider shadow-md hover:brightness-110 cursor-pointer shrink-0"
                 >
-                  Book Follow-Up Review
+                  {t.portal.bookConsultBtn}
                 </button>
               </div>
             </div>

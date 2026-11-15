@@ -15,6 +15,7 @@ import {
 import { HerbalBlog } from '../components/HerbalBlog';
 import { RemediesGuide } from '../components/RemediesGuide';
 import { HerbalProduct } from '../types/clinic';
+import { useLanguage } from '../context/LanguageContext';
 
 interface BlogPageProps {
   onSelectShopProduct: (productId: string) => void;
@@ -27,6 +28,7 @@ export const BlogPage: React.FC<BlogPageProps> = ({
   onOpenBooking,
   onAddToCart,
 }) => {
+  const { t } = useLanguage();
   const classicalRecipes = [
     {
       title: 'Avicenna’s Royal Black Seed & Raw Honey Electuary',
@@ -69,24 +71,24 @@ export const BlogPage: React.FC<BlogPageProps> = ({
   ];
 
   return (
-    <div className="pt-24 lg:pt-32 pb-20 min-h-screen bg-[#0d1609] text-[#f5f3ec] relative selection:bg-[#84cc16] selection:text-black">
-      {/* Page Ambient Ancient Earthy Moss & Herbal Olive Aura */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[550px] bg-gradient-to-b from-lime-600/25 via-emerald-900/15 to-transparent blur-[150px] pointer-events-none -z-10" />
+    <div className="pt-24 lg:pt-32 pb-20 min-h-screen bg-[#08150D] text-[#F4F0E6] relative overflow-x-hidden selection:bg-[#D4AF37] selection:text-[#06110C]">
+      {/* Page Ambient Forest Emerald & Gold Aura */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1100px] h-[550px] bg-gradient-to-b from-emerald-700/20 via-[#0B1D14]/20 to-transparent blur-[150px] pointer-events-none -z-10" />
 
       {/* Header Banner */}
       <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-10">
         <div className="text-center max-w-3xl mx-auto space-y-4">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#112a14] border border-[#e2bb38]/40 text-[#e2bb38] text-xs font-semibold uppercase tracking-widest shadow-md">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>The Safi Materia Medica & Remedies Journal</span>
+            <span>{t.blog.badge}</span>
           </div>
 
           <h1 className="font-serif-classic text-3xl sm:text-4xl lg:text-5xl font-bold text-[#f5f3ec]">
-            Herbal Remedies, Clinical Monographs & Phytotherapy
+            {t.blog.title}
           </h1>
 
           <p className="text-sm sm:text-base text-[#a6b6ad] leading-relaxed">
-            Evidence-based botanical insights, traditional Unani-Tibb home preparation recipes, and medicinal chemistry guides written by our clinical herbalists in Kabul.
+            {t.blog.subtitle}
           </p>
         </div>
       </section>
@@ -112,13 +114,13 @@ export const BlogPage: React.FC<BlogPageProps> = ({
         <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-[#0c2413] via-[#091d0f] to-[#040e07] border border-[#e2bb38]/40 shadow-2xl space-y-10">
           <div className="text-center max-w-2xl mx-auto">
             <span className="text-xs uppercase tracking-widest text-[#e2bb38] font-semibold">
-              Traditional Pharmacopeia
+              {t.blog.pharmKicker}
             </span>
             <h2 className="font-serif-classic text-2xl sm:text-3xl font-bold text-[#f5f3ec] mt-1">
-              Ancient Home Formulations You Can Prepare
+              {t.blog.pharmTitle}
             </h2>
             <p className="text-xs sm:text-sm text-[#8da396] mt-2">
-              Time-honored preparation recipes recorded in classical Greco-Arab Unani-Tibb pharmacopeia for daily health defense.
+              {t.blog.pharmSub}
             </p>
           </div>
 
@@ -141,11 +143,11 @@ export const BlogPage: React.FC<BlogPageProps> = ({
                   </h3>
 
                   <p className="text-xs font-medium text-emerald-400">
-                    Indication: {recipe.target}
+                    {t.blog.indicationLabel} {recipe.target}
                   </p>
 
                   <div className="space-y-1 pt-2 border-t border-[#1e4423]">
-                    <span className="text-[11px] font-bold text-[#e2bb38] block">Ingredients:</span>
+                    <span className="text-[11px] font-bold text-[#e2bb38] block">{t.blog.ingredientsLabel}</span>
                     <ul className="space-y-1 text-xs text-[#a6b6ad]">
                       {recipe.ingredients.map((ing, i) => (
                         <li key={i} className="flex items-start gap-1.5">
@@ -157,7 +159,7 @@ export const BlogPage: React.FC<BlogPageProps> = ({
                   </div>
 
                   <div className="pt-2 border-t border-[#1e4423]">
-                    <span className="text-[11px] font-bold text-[#e2bb38] block mb-1">Method:</span>
+                    <span className="text-[11px] font-bold text-[#e2bb38] block mb-1">{t.blog.methodLabel}</span>
                     <p className="text-xs text-[#d8e2dc] leading-relaxed italic">
                       {recipe.instructions}
                     </p>
@@ -167,16 +169,16 @@ export const BlogPage: React.FC<BlogPageProps> = ({
             ))}
           </div>
 
-          <div className="pt-4 border-t border-[#1e4423] flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+          <div className="pt-4 border-t border-[#1e4423] flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-start">
             <p className="text-xs text-[#a6b6ad]">
-              Want personalized botanical protocols specific to your constitution?
+              {t.blog.wantPersonalized}
             </p>
             <button
               onClick={onOpenBooking}
               className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#e2bb38] to-[#ab8922] text-black font-semibold text-xs tracking-wide shadow-md hover:brightness-110 transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <Calendar className="w-3.5 h-3.5" />
-              <span>Schedule a Clinical Consultation</span>
+              <span>{t.blog.scheduleBtn}</span>
             </button>
           </div>
         </div>
@@ -187,10 +189,10 @@ export const BlogPage: React.FC<BlogPageProps> = ({
         <div className="p-5 rounded-2xl bg-[#091a0e] border border-[#1e4423] text-xs text-[#8da396] leading-relaxed space-y-2">
           <div className="flex items-center gap-2 text-[#e2bb38] font-semibold text-xs uppercase tracking-wider">
             <ShieldCheck className="w-4 h-4" />
-            <span>Clinical Phytotherapy & Education Disclaimer</span>
+            <span>{t.blog.disclaimerTitle}</span>
           </div>
           <p>
-            The educational articles and herbal monographs provided by Safi Herbal Clinic are intended for informational purposes and constitutional self-care education. They do not constitute individualized medical diagnoses. If you are pregnant, nursing, taking prescription medications, or managing severe chronic illness, please consult with our registered clinical herbalists or your primary healthcare provider before undertaking new herbal regimens.
+            {t.blog.disclaimerBody}
           </p>
         </div>
       </section>

@@ -16,6 +16,9 @@ import {
 } from 'lucide-react';
 import { HERBAL_PRODUCTS, BLOG_POSTS } from '../data/clinicData';
 import { HerbalProduct, BlogPost } from '../types/clinic';
+import { useLanguage } from '../context/LanguageContext';
+import { pickLocalized } from '../utils/i18n';
+import { useCurrency } from '../context/CurrencyContext';
 
 export interface RemedyGuideItem {
   id: string;
@@ -160,6 +163,10 @@ export const RemediesGuide: React.FC<RemediesGuideProps> = ({
   onSelectShopProduct,
   onAddToCart,
 }) => {
+  const { language, t } = useLanguage();
+  const { formatPrice } = useCurrency();
+  const tx = <T,>(en: T, ps: T, fa: T) => pickLocalized(language, { en, ps, fa });
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAilment, setSelectedAilment] = useState('all');
   const [selectedHerb, setSelectedHerb] = useState('all');
@@ -225,18 +232,22 @@ export const RemediesGuide: React.FC<RemediesGuideProps> = ({
         <div className="space-y-2 max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/40 border border-[#d4af37]/40 text-[#d4af37] text-xs font-semibold uppercase tracking-widest">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Interactive Herbal Materia Medica</span>
+            <span>{t.blog.pharmKicker}</span>
           </div>
           <h2 className="font-serif-classic text-2xl sm:text-3xl lg:text-4xl font-bold text-[#f5f3ec]">
-            Interactive Herbal Remedies Guide
+            {tx('Interactive Herbal Remedies Guide', 'د بوټو درملو متقابل لارښود', 'راهنمای تعاملی درمان‌های گیاهی')}
           </h2>
           <p className="text-xs sm:text-sm text-[#a6b6ad] leading-relaxed">
-            Filter our clinical herbal dispensary and journal by specific health ailment, symptom, or primary medicinal herb. Every monograph connects traditional Unani Mizaj concepts with verified clinical formulations.
+            {tx(
+              'Filter our clinical herbal dispensary and journal by specific health ailment, symptom, or primary medicinal herb. Every monograph connects traditional Unani Mizaj concepts with verified clinical formulations.',
+              'زموږ د درملتون او مجلې بوټي درمل د ناروغۍ، نښې یا اصلي بوټي له مخې وپلټئ.',
+              'داروهای گیاهی دواخانه و مقالات کلینیکی ما را بر اساس بیماری، علائم یا گیاه اصلی فیلتر کنید.'
+            )}
           </p>
         </div>
 
-        <div className="text-right text-xs text-[#d4af37]">
-          Showing <span className="font-bold text-[#f5f3ec]">{filteredRemedies.length}</span> of {REMEDIES_DATABASE.length} Classical Remedies
+        <div className="text-end text-xs text-[#d4af37] tabular-nums" dir="ltr">
+          <span className="font-bold text-[#f5f3ec]">{filteredRemedies.length}</span> / {REMEDIES_DATABASE.length}
         </div>
       </div>
 
@@ -244,20 +255,24 @@ export const RemediesGuide: React.FC<RemediesGuideProps> = ({
       <div className="space-y-4">
         {/* Search Bar */}
         <div className="relative">
-          <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-[#8da396]" />
+          <Search className="w-5 h-5 absolute start-4 top-1/2 -translate-y-1/2 text-[#8da396]" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search remedy by symptom (e.g. acid reflux, joint stiffness, insomnia) or botanical herb..."
-            className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-[#05130b] border border-[#234b3c] focus:border-[#d4af37] text-sm text-[#f5f3ec] placeholder:text-[#52705e] focus:outline-none transition-colors"
+            placeholder={tx(
+              'Search remedy by symptom (e.g. acid reflux, joint stiffness, insomnia) or botanical herb...',
+              'درمل د نښې یا طبیعي بوټي له مخې ولټوئ...',
+              'جستجوی دارو بر اساس علائم یا نام گیاه...'
+            )}
+            className="w-full ps-12 pe-4 py-3.5 rounded-xl bg-[#05130b] border border-[#234b3c] focus:border-[#d4af37] text-sm text-[#f5f3ec] placeholder:text-[#52705e] focus:outline-none transition-colors"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-[#8da396] hover:text-white"
+              className="absolute end-4 top-1/2 -translate-y-1/2 text-xs text-[#8da396] hover:text-white cursor-pointer"
             >
-              Clear
+              {tx('Clear', 'پاکول', 'پاک کردن')}
             </button>
           )}
         </div>
@@ -268,20 +283,20 @@ export const RemediesGuide: React.FC<RemediesGuideProps> = ({
           <div className="space-y-1.5">
             <label className="text-[11px] font-semibold uppercase tracking-wider text-[#d4af37] flex items-center gap-1.5">
               <Activity className="w-3.5 h-3.5" />
-              <span>Filter by Common Ailment</span>
+              <span>{tx('Filter by Common Ailment', 'د ناروغۍ له مخې فلټر', 'فیلتر بر اساس بیماری')}</span>
             </label>
             <select
               value={selectedAilment}
               onChange={(e) => setSelectedAilment(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl bg-[#05130b] border border-[#234b3c] text-xs text-[#f5f3ec] focus:outline-none focus:border-[#d4af37] cursor-pointer"
             >
-              <option value="all">All Common Ailments</option>
-              <option value="digestive">Digestive & Gastric Health</option>
-              <option value="joints">Joints & Arthritis</option>
-              <option value="stress">Stress, Burnout & Insomnia</option>
-              <option value="respiratory">Respiratory & Immunity</option>
-              <option value="skin">Skin & Eczema</option>
-              <option value="vitality">Vitality & Metabolism</option>
+              <option value="all">{tx('All Common Ailments', 'ټولې ناروغۍ', 'همه بیماری‌ها')}</option>
+              <option value="digestive">{tx('Digestive & Gastric Health', 'هاضمه او معده', 'هاضمه و معده')}</option>
+              <option value="joints">{tx('Joints & Arthritis', 'بندونه او ارتریتس', 'مفاصل و آرتروز')}</option>
+              <option value="stress">{tx('Stress, Burnout & Insomnia', 'فشار او بې خوبي', 'استرس و بی‌خوابی')}</option>
+              <option value="respiratory">{tx('Respiratory & Immunity', 'تنفس او معافیت', 'تنفس و معافیت')}</option>
+              <option value="skin">{tx('Skin & Eczema', 'پوست او اکزیما', 'پوست و اگزما')}</option>
+              <option value="vitality">{tx('Vitality & Metabolism', 'ځواک او میتابولیزم', 'انرژی و متابولیسم')}</option>
             </select>
           </div>
 
@@ -289,14 +304,14 @@ export const RemediesGuide: React.FC<RemediesGuideProps> = ({
           <div className="space-y-1.5">
             <label className="text-[11px] font-semibold uppercase tracking-wider text-[#d4af37] flex items-center gap-1.5">
               <Droplets className="w-3.5 h-3.5" />
-              <span>Filter by Specific Symptom</span>
+              <span>{tx('Filter by Specific Symptom', 'د نښو له مخې فلټر', 'فیلتر بر اساس علامت')}</span>
             </label>
             <select
               value={selectedSymptom}
               onChange={(e) => setSelectedSymptom(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl bg-[#05130b] border border-[#234b3c] text-xs text-[#f5f3ec] focus:outline-none focus:border-[#d4af37] cursor-pointer"
             >
-              <option value="all">All Identified Symptoms</option>
+              <option value="all">{tx('All Identified Symptoms', 'ټولې نښې', 'همه علائم')}</option>
               {allSymptoms
                 .filter((s) => s !== 'all')
                 .map((symp) => (
@@ -311,14 +326,14 @@ export const RemediesGuide: React.FC<RemediesGuideProps> = ({
           <div className="space-y-1.5">
             <label className="text-[11px] font-semibold uppercase tracking-wider text-[#d4af37] flex items-center gap-1.5">
               <Leaf className="w-3.5 h-3.5" />
-              <span>Filter by Main Botanical Herb</span>
+              <span>{tx('Filter by Main Botanical Herb', 'د اصلي بوټي له مخې فلټر', 'فیلتر بر اساس گیاه اصلی')}</span>
             </label>
             <select
               value={selectedHerb}
               onChange={(e) => setSelectedHerb(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl bg-[#05130b] border border-[#234b3c] text-xs text-[#f5f3ec] focus:outline-none focus:border-[#d4af37] cursor-pointer"
             >
-              <option value="all">All Botanical Herbs</option>
+              <option value="all">{tx('All Botanical Herbs', 'ټول طبیعي بوټي', 'همه گیاهان دارویی')}</option>
               {allHerbs
                 .filter((h) => h !== 'all')
                 .map((herb) => (
@@ -333,7 +348,7 @@ export const RemediesGuide: React.FC<RemediesGuideProps> = ({
         {/* Quick Reset Button if filtered */}
         {(selectedAilment !== 'all' || selectedHerb !== 'all' || selectedSymptom !== 'all' || searchQuery) && (
           <div className="flex items-center justify-between text-xs text-[#8da396] pt-1">
-            <span>Filtered results active</span>
+            <span>{tx('Filtered results active', 'فلټر فعال دی', 'نتایج فیلترشده فعال است')}</span>
             <button
               onClick={() => {
                 setSelectedAilment('all');
@@ -343,7 +358,7 @@ export const RemediesGuide: React.FC<RemediesGuideProps> = ({
               }}
               className="text-[#d4af37] hover:underline cursor-pointer"
             >
-              Reset all filters
+              {tx('Reset all filters', 'ټول فلټرونه پاک کړئ', 'بازنشانی همه فیلترها')}
             </button>
           </div>
         )}
@@ -354,10 +369,10 @@ export const RemediesGuide: React.FC<RemediesGuideProps> = ({
         <div className="text-center py-16 px-4 rounded-2xl bg-[#05130b] border border-[#234b3c] space-y-3">
           <AlertCircle className="w-8 h-8 text-[#d4af37] mx-auto" />
           <h4 className="font-serif-classic font-bold text-lg text-[#f5f3ec]">
-            No remedies matched your filter combination
+            {tx('No remedies matched your filter combination', 'ستاسو د فلټر سره هیڅ درمل ونه موندل شول', 'هیچ درمانی مطابق فیلتر شما یافت نشد')}
           </h4>
           <p className="text-xs text-[#8da396] max-w-md mx-auto">
-            Try resetting your filters or selecting a broader symptom like "Acid Reflux", "Joint Swelling", or "Insomnia".
+            {t.shop.emptySub}
           </p>
           <button
             onClick={() => {
@@ -368,7 +383,7 @@ export const RemediesGuide: React.FC<RemediesGuideProps> = ({
             }}
             className="px-4 py-2 rounded-lg bg-[#0e2118] border border-[#d4af37] text-xs text-[#d4af37] hover:bg-[#d4af37] hover:text-black transition-colors"
           >
-            Clear Filters
+            {tx('Clear Filters', 'فلټرونه پاک کړئ', 'پاک کردن فیلترها')}
           </button>
         </div>
       ) : (
@@ -388,7 +403,7 @@ export const RemediesGuide: React.FC<RemediesGuideProps> = ({
                     <span className="px-2.5 py-0.5 rounded bg-[#0b2417] border border-[#234b3c] text-[10px] font-bold text-[#d4af37] uppercase tracking-wider">
                       {remedy.ailmentLabel}
                     </span>
-                    <span className="text-[11px] text-[#8da396] italic">
+                    <span className="text-[11px] text-[#8da396] italic" dir="ltr">
                       {remedy.latinName}
                     </span>
                   </div>
@@ -399,14 +414,14 @@ export const RemediesGuide: React.FC<RemediesGuideProps> = ({
                       {remedy.remedyName}
                     </h3>
                     <div className="text-xs text-[#d4af37] font-semibold mt-0.5">
-                      Main Herb: {remedy.mainHerb}
+                      {remedy.mainHerb}
                     </div>
                   </div>
 
                   {/* Unani Mizaj Temperament */}
                   <div className="p-3 rounded-xl bg-[#040e08] border border-[#1b3b2f] space-y-1">
                     <div className="text-[10px] uppercase tracking-wider text-[#8da396] font-semibold">
-                      Unani Mizaj & Humoral Action:
+                      {tx('Unani Mizaj & Humoral Action:', 'یوناني مزاج او اخلاطي اغېز:', 'مزاج یونانی و تاثیر اخلاطی:')}
                     </div>
                     <p className="text-xs text-[#d8e2dc] font-medium leading-relaxed">
                       {remedy.unaniMizaj}
@@ -416,7 +431,7 @@ export const RemediesGuide: React.FC<RemediesGuideProps> = ({
                   {/* Symptoms Addressed */}
                   <div className="space-y-1.5">
                     <span className="text-[10px] uppercase tracking-wider text-[#8da396] font-semibold block">
-                      Addressed Symptoms:
+                      {tx('Addressed Symptoms:', 'اړوندې نښې:', 'علائم تحت پوشش:')}
                     </span>
                     <div className="flex flex-wrap gap-1.5">
                       {remedy.symptoms.map((s, idx) => (
@@ -433,11 +448,11 @@ export const RemediesGuide: React.FC<RemediesGuideProps> = ({
                   {/* Active Phytochemicals & Clinical Action */}
                   <div className="text-xs text-[#a6b6ad] space-y-1 pt-2 border-t border-[#1b3b2f]">
                     <div>
-                      <span className="text-[#8da396] font-semibold">Key Phytonutrients: </span>
+                      <span className="text-[#8da396] font-semibold">{t.quickView.keyActives}: </span>
                       <span className="text-[#f5f3ec]">{remedy.activeCompounds}</span>
                     </div>
                     <div>
-                      <span className="text-[#8da396] font-semibold">Method & Dosage: </span>
+                      <span className="text-[#8da396] font-semibold">{t.shop.clinicalDosage} </span>
                       <span className="text-[#d8e2dc]">{remedy.dosage}</span>
                     </div>
                   </div>
@@ -452,7 +467,7 @@ export const RemediesGuide: React.FC<RemediesGuideProps> = ({
                       className="w-full sm:w-auto px-3.5 py-2 rounded-lg bg-[#081f13] border border-[#234b3c] hover:border-[#d4af37] text-xs font-semibold text-[#f5f3ec] hover:text-[#d4af37] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <BookOpen className="w-3.5 h-3.5 text-[#d4af37]" />
-                      <span>Read Clinical Dossier</span>
+                      <span>{tx('Read Clinical Dossier', 'کلینیکي دوسیه ولولئ', 'مطالعه پرونده کلینیکی')}</span>
                     </button>
                   )}
 
@@ -461,10 +476,10 @@ export const RemediesGuide: React.FC<RemediesGuideProps> = ({
                     <div className="w-full sm:w-auto flex items-center gap-2">
                       <button
                         onClick={() => onSelectShopProduct && onSelectShopProduct(linkedProduct.id)}
-                        className="px-3 py-2 rounded-lg bg-[#0e2118] border border-[#234b3c] hover:border-[#d4af37] text-xs text-[#f5f3ec] cursor-pointer transition-colors"
-                        title="View product in dispensary"
+                        className="px-3 py-2 rounded-lg bg-[#0e2118] border border-[#234b3c] hover:border-[#d4af37] text-xs text-[#f5f3ec] cursor-pointer transition-colors tabular-nums"
+                        dir="ltr"
                       >
-                        ${linkedProduct.price.toFixed(2)} · View
+                        {formatPrice(linkedProduct.price)} · {t.shop.inspectBtn}
                       </button>
 
                       {onAddToCart && (
@@ -477,7 +492,7 @@ export const RemediesGuide: React.FC<RemediesGuideProps> = ({
                           className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#aa8222] text-black font-bold text-xs shadow-md hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           <ShoppingBag className="w-3.5 h-3.5" />
-                          <span>{addedNotice === remedy.id ? 'Added!' : 'Get Product'}</span>
+                          <span>{addedNotice === remedy.id ? t.shop.addedBtn : t.shop.addBtn}</span>
                         </button>
                       )}
                     </div>

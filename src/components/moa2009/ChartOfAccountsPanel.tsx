@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { BookOpen, Plus, Search, CheckCircle2, AlertCircle } from 'lucide-react';
 import { GlAccountRecord, MoaAccountType } from '../../types/clinic';
 import { getNormalBalanceForType } from '../../utils/accountingEngine';
+import { useCurrency } from '../../context/CurrencyContext';
 
 interface ChartOfAccountsPanelProps {
   accounts: GlAccountRecord[];
@@ -22,6 +23,7 @@ export const ChartOfAccountsPanel: React.FC<ChartOfAccountsPanelProps> = ({
   accounts,
   onRefresh,
 }) => {
+  const { formatPrice } = useCurrency();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'All' | MoaAccountType>('All');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -250,14 +252,14 @@ export const ChartOfAccountsPanel: React.FC<ChartOfAccountsPanelProps> = ({
                   </td>
                   <td className="py-2.5 px-4 text-[#a6b6ad] font-medium">{acct.accountType}</td>
                   <td className="py-2.5 px-4 text-[#8da396]">{acct.normalBalance}</td>
-                  <td className="py-2.5 px-4 text-right font-mono tabular-nums text-[#a6b6ad]">
-                    ${acct.totalDebits.toFixed(2)}
+                  <td className="py-2.5 px-4 text-right font-mono tabular-nums text-[#a6b6ad] whitespace-nowrap">
+                    <span dir="ltr">{formatPrice(acct.totalDebits)}</span>
                   </td>
-                  <td className="py-2.5 px-4 text-right font-mono tabular-nums text-[#a6b6ad]">
-                    ${acct.totalCredits.toFixed(2)}
+                  <td className="py-2.5 px-4 text-right font-mono tabular-nums text-[#a6b6ad] whitespace-nowrap">
+                    <span dir="ltr">{formatPrice(acct.totalCredits)}</span>
                   </td>
-                  <td className="py-2.5 px-4 text-right font-mono tabular-nums font-bold text-[#f5f3ec]">
-                    ${acct.balance.toFixed(2)}
+                  <td className="py-2.5 px-4 text-right font-mono tabular-nums font-bold text-[#f5f3ec] whitespace-nowrap">
+                    <span dir="ltr">{formatPrice(acct.balance)}</span>
                   </td>
                 </tr>
               ))}

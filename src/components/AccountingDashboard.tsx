@@ -23,6 +23,8 @@ import {
 } from 'recharts';
 import { AnalyticsPeriod, NetRevenueMetrics } from '../utils/clinicLogic';
 import { TransactionRecord } from '../types/clinic';
+import { useCurrency } from '../context/CurrencyContext';
+import { formatShortAxisPrice } from '../utils/currency';
 
 interface ChartPoint {
   label: string;
@@ -50,6 +52,7 @@ interface AccountingDashboardProps {
  * checkout writes atomically to PostgreSQL `transactions` with zero manual entry.
  */
 export const AccountingDashboard: React.FC<AccountingDashboardProps> = ({ refreshTrigger }) => {
+  const { currency, formatPrice } = useCurrency();
   const [period, setPeriod] = useState<AnalyticsPeriod>('monthly');
   const [loading, setLoading] = useState<boolean>(true);
   const [overheadPct, setOverheadPct] = useState<number>(15);
@@ -153,7 +156,7 @@ export const AccountingDashboard: React.FC<AccountingDashboardProps> = ({ refres
             <DollarSign className="w-4 h-4 text-[#d4af37]" />
           </div>
           <div className="text-2xl sm:text-3xl font-bold text-[#d4af37] font-mono tabular-nums">
-            ${summary.grossRevenue.toFixed(2)}
+            <span dir="ltr">{formatPrice(summary.grossRevenue)}</span>
           </div>
           <div className="text-[11px] text-[#a6b6ad]">
             Combined clinical fees & dispensary sales
@@ -166,10 +169,11 @@ export const AccountingDashboard: React.FC<AccountingDashboardProps> = ({ refres
             <Percent className="w-4 h-4 text-amber-400" />
           </div>
           <div className="text-2xl sm:text-3xl font-bold text-amber-300 font-mono tabular-nums">
-            ${(summary.totalCogs + summary.totalOverhead).toFixed(2)}
+            <span dir="ltr">{formatPrice(summary.totalCogs + summary.totalOverhead)}</span>
           </div>
           <div className="text-[11px] text-[#a6b6ad] tabular-nums">
-            COGS ${summary.totalCogs.toFixed(2)} + Overhead ${summary.totalOverhead.toFixed(2)}
+            COGS <span dir="ltr">{formatPrice(summary.totalCogs)}</span> + Overhead{' '}
+            <span dir="ltr">{formatPrice(summary.totalOverhead)}</span>
           </div>
         </div>
 
@@ -179,7 +183,7 @@ export const AccountingDashboard: React.FC<AccountingDashboardProps> = ({ refres
             <TrendingUp className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="text-2xl sm:text-3xl font-bold text-emerald-400 font-mono tabular-nums">
-            ${summary.netRevenue.toFixed(2)}
+            <span dir="ltr">{formatPrice(summary.netRevenue)}</span>
           </div>
           <div className="text-[11px] text-emerald-300/80 flex items-center gap-1 tabular-nums">
             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -203,7 +207,10 @@ export const AccountingDashboard: React.FC<AccountingDashboardProps> = ({ refres
 
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <AreaChart
+                data={chartData}
+                margin={{ top: 10, right: 10, left: currency === 'AFN' ? 14 : -10, bottom: 0 }}
+              >
                 <defs>
                   <linearGradient id="grossGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#d4af37" stopOpacity={0.45} />
@@ -216,8 +223,13 @@ export const AccountingDashboard: React.FC<AccountingDashboardProps> = ({ refres
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1b3b2f" />
                 <XAxis dataKey="label" stroke="#8da396" tick={{ fontSize: 11 }} />
-                <YAxis stroke="#8da396" tick={{ fontSize: 11 }} tickFormatter={(v) => `$${v}`} />
+                <YAxis
+                  stroke="#8da396"
+                  tick={{ fontSize: 11 }}
+                  tickFormatter={(v) => formatShortAxisPrice(Number(v), currency)}
+                />
                 <Tooltip
+                  formatter={(value: unknown) => formatPrice(Number(value))}
                   contentStyle={{
                     backgroundColor: '#05110a',
                     borderColor: '#d4af37',
@@ -229,7 +241,7 @@ export const AccountingDashboard: React.FC<AccountingDashboardProps> = ({ refres
                 <Area
                   type="monotone"
                   dataKey="grossRevenue"
-                  name="Gross Revenue ($)"
+                  name={`Gross Revenue (${currency === 'AFN' ? 'AFG' : '$'})`}
                   stroke="#d4af37"
                   strokeWidth={2}
                   fill="url(#grossGrad)"
@@ -237,7 +249,7 @@ export const AccountingDashboard: React.FC<AccountingDashboardProps> = ({ refres
                 <Area
                   type="monotone"
                   dataKey="netRevenue"
-                  name="Net Revenue ($)"
+                  name={`Net Revenue (${currency === 'AFN' ? 'AFG' : '$'})`}
                   stroke="#22c55e"
                   strokeWidth={2}
                   fill="url(#netGrad)"
@@ -260,11 +272,19 @@ export const AccountingDashboard: React.FC<AccountingDashboardProps> = ({ refres
 
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <BarChart
+                data={chartData}
+                margin={{ top: 10, right: 10, left: currency === 'AFN' ? 14 : -10, bottom: 0 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#1b3b2f" />
                 <XAxis dataKey="label" stroke="#8da396" tick={{ fontSize: 11 }} />
-                <YAxis stroke="#8da396" tick={{ fontSize: 11 }} tickFormatter={(v) => `$${v}`} />
+                <YAxis
+                  stroke="#8da396"
+                  tick={{ fontSize: 11 }}
+                  tickFormatter={(v) => formatShortAxisPrice(Number(v), currency)}
+                />
                 <Tooltip
+                  formatter={(value: unknown) => formatPrice(Number(value))}
                   contentStyle={{
                     backgroundColor: '#05110a',
                     borderColor: '#1b3b2f',
@@ -273,8 +293,18 @@ export const AccountingDashboard: React.FC<AccountingDashboardProps> = ({ refres
                     color: '#f5f3ec',
                   }}
                 />
-                <Bar dataKey="netRevenue" name="Net Profit ($)" fill="#16a34a" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="cogsAndOverhead" name="COGS & Overhead ($)" fill="#d97706" radius={[4, 4, 0, 0]} />
+                <Bar
+                  dataKey="netRevenue"
+                  name={`Net Profit (${currency === 'AFN' ? 'AFG' : '$'})`}
+                  fill="#16a34a"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  dataKey="cogsAndOverhead"
+                  name={`COGS & Overhead (${currency === 'AFN' ? 'AFG' : '$'})`}
+                  fill="#d97706"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -342,17 +372,17 @@ export const AccountingDashboard: React.FC<AccountingDashboardProps> = ({ refres
                         {tx.description}
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-right font-mono tabular-nums text-[#f5f3ec]">
-                      ${Number(tx.grossAmount).toFixed(2)}
+                    <td className="py-3 px-4 text-right font-mono tabular-nums text-[#f5f3ec] whitespace-nowrap">
+                      <span dir="ltr">{formatPrice(Number(tx.grossAmount))}</span>
                     </td>
-                    <td className="py-3 px-4 text-right font-mono tabular-nums text-[#a6b6ad]">
-                      ${Number(tx.cogsAmount).toFixed(2)}
+                    <td className="py-3 px-4 text-right font-mono tabular-nums text-[#a6b6ad] whitespace-nowrap">
+                      <span dir="ltr">{formatPrice(Number(tx.cogsAmount))}</span>
                     </td>
-                    <td className="py-3 px-4 text-right font-mono tabular-nums text-amber-300">
-                      ${Number(tx.overheadAmount).toFixed(2)}
+                    <td className="py-3 px-4 text-right font-mono tabular-nums text-amber-300 whitespace-nowrap">
+                      <span dir="ltr">{formatPrice(Number(tx.overheadAmount))}</span>
                     </td>
-                    <td className="py-3 px-4 text-right font-mono tabular-nums font-bold text-emerald-400">
-                      ${Number(tx.netAmount).toFixed(2)}
+                    <td className="py-3 px-4 text-right font-mono tabular-nums font-bold text-emerald-400 whitespace-nowrap">
+                      <span dir="ltr">{formatPrice(Number(tx.netAmount))}</span>
                     </td>
                   </tr>
                 ))

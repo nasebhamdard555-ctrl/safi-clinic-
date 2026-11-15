@@ -15,6 +15,7 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { PatientCrmProfile } from '../types/clinic';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface PatientCrmPanelProps {
   onTriageLogged?: () => void;
@@ -43,6 +44,7 @@ const PRACTITIONERS = [
  *      fee automatically to the centralized `transactions` accounting ledger.
  */
 export const PatientCrmPanel: React.FC<PatientCrmPanelProps> = ({ onTriageLogged }) => {
+  const { formatPrice } = useCurrency();
   const [patients, setPatients] = useState<PatientCrmProfile[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<PatientCrmProfile | null>(null);
   const [loadingPatients, setLoadingPatients] = useState(true);
@@ -471,7 +473,7 @@ export const PatientCrmPanel: React.FC<PatientCrmPanelProps> = ({ onTriageLogged
                 >
                   {checkingIn
                     ? 'Recording Visit & Ledger Entry...'
-                    : `Check In & Log Arrival ($${Number(checkInFee || 140).toFixed(0)} Consultation)`}
+                    : `Check In & Log Arrival (${formatPrice(Number(checkInFee || 140), { compactDecimals: true })} Consultation)`}
                 </button>
               </div>
 
@@ -496,8 +498,11 @@ export const PatientCrmPanel: React.FC<PatientCrmPanelProps> = ({ onTriageLogged
                             {v.notes || 'Standard Unani & Naturopathic assessment'}
                           </div>
                         </div>
-                        <span className="font-mono tabular-nums font-bold text-emerald-400">
-                          ${Number(v.consultationFee).toFixed(2)}
+                        <span
+                          dir="ltr"
+                          className="font-mono tabular-nums font-bold text-emerald-400 whitespace-nowrap"
+                        >
+                          {formatPrice(Number(v.consultationFee))}
                         </span>
                       </div>
                     ))}

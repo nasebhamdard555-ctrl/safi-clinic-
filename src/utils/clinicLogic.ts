@@ -442,9 +442,11 @@ export function buildSocialShareUrl(
   productName: string,
   productPrice: number,
   whatsappNumber: string = '+93780299299',
-  siteUrl: string = 'https://www.safihealthcare.com'
+  siteUrl: string = 'https://www.safihealthcare.com',
+  formattedPrice?: string
 ): string {
-  const shareText = `${productName} ($${productPrice.toFixed(2)}) — Authentic botanical formulation from Safi Natural Care Clinic, Kabul.`;
+  const priceText = formattedPrice || `$${productPrice.toFixed(2)}`;
+  const shareText = `${productName} (${priceText}) — Authentic botanical formulation from Safi Natural Care Clinic, Kabul.`;
   if (platform === 'facebook') {
     return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(siteUrl)}&quote=${encodeURIComponent(shareText)}`;
   }

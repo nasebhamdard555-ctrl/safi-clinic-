@@ -18,7 +18,7 @@ const mockProduct: HerbalProduct = {
   rating: 4.9,
   reviewsCount: 128,
   inStock: true,
-  image: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=600&q=80',
+  image: '/assets/aistudio/WhatsApp_Image_2026-11-06_at_2.48.10_PM_29fcc7b7.jpeg',
   volumeOrWeight: '100ml / 3.4 fl oz',
   shortDescription: 'Pure Ethiopian black cumin seed oil.',
   detailedDescription: 'Full cold pressed unfiltered elixir.',

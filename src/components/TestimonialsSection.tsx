@@ -5,6 +5,7 @@ import {
   Quote,
   UserCheck,
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export interface PatientTestimonial {
   id: string;
@@ -144,6 +145,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
   onOpenBooking,
   variant = 'dark',
 }) => {
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const isLight = variant === 'limestone';
@@ -151,7 +153,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
   const filtered =
     selectedCategory === 'all'
       ? DETAILED_TESTIMONIALS
-      : DETAILED_TESTIMONIALS.filter((t) => t.category === selectedCategory);
+      : DETAILED_TESTIMONIALS.filter((item) => item.category === selectedCategory);
 
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -162,7 +164,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
             isLight ? 'text-[#8C5A32]' : 'text-[#d4af37]'
           }`}
         >
-          Patient Stories & Clinical Outcomes
+          {t.testimonials.kicker}
         </span>
 
         <h2
@@ -170,7 +172,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
             isLight ? 'text-[#141815]' : 'text-[#f5f3ec]'
           }`}
         >
-          Patient Experiences & Documented Progress
+          {t.testimonials.heading}
         </h2>
 
         <p
@@ -178,19 +180,19 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
             isLight ? 'text-[#4E544F]' : 'text-[#8da396]'
           }`}
         >
-          Observational outpatient feedback from patients treated at Safi Natural Care Clinic in Kabul.
+          {t.testimonials.sub}
         </p>
       </div>
 
       {/* Category Filter Tabs */}
       <div className="flex flex-wrap items-center gap-2 mb-8">
         {[
-          { id: 'all', label: 'All Stories' },
-          { id: 'digestive', label: 'Digestive' },
-          { id: 'joints', label: 'Joints & Mobility' },
-          { id: 'stress', label: 'Stress & Sleep' },
-          { id: 'skin', label: 'Skin & Hair' },
-          { id: 'vitality', label: 'Hormonal & Acupuncture' },
+          { id: 'all', label: t.testimonials.allStories },
+          { id: 'digestive', label: t.symptomsMap['digestive']?.name ?? 'Digestive' },
+          { id: 'joints', label: t.symptomsMap['pain-joints']?.name ?? 'Joints & Mobility' },
+          { id: 'stress', label: t.symptomsMap['stress-sleep']?.name ?? 'Stress & Sleep' },
+          { id: 'skin', label: t.symptomsMap['skin-immunity']?.name ?? 'Skin & Hair' },
+          { id: 'vitality', label: t.symptomsMap['hormonal-wellness']?.name ?? 'Hormonal & Acupuncture' },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -236,7 +238,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
                   }`}
                 >
                   <UserCheck className="w-3.5 h-3.5" />
-                  <span>Verified Patient</span>
+                  <span>{t.testimonials.verifiedPatient}</span>
                 </div>
               </div>
 
@@ -254,7 +256,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
                       isLight ? 'text-[#6A706B]' : 'text-[#8da396]'
                     }`}
                   >
-                    Progress
+                    {t.testimonials.progressLabel}
                   </span>
                   <span
                     className={`font-bold text-xs flex items-center gap-1 ${
@@ -277,16 +279,16 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
               {/* Patient Quote */}
               <div className="relative pt-1">
                 <Quote
-                  className={`w-5 h-5 absolute -top-1 -left-1 shrink-0 ${
+                  className={`w-5 h-5 absolute -top-1 -start-1 shrink-0 ${
                     isLight ? 'text-[#8C5A32]/25' : 'text-[#d4af37]/20'
                   }`}
                 />
                 <p
-                  className={`text-xs italic leading-relaxed pl-5 ${
+                  className={`text-xs italic leading-relaxed ps-5 ${
                     isLight ? 'text-[#2D332E]' : 'text-[#d8e2dc]'
                   }`}
                 >
-                  "{test.quote}"
+                  &ldquo;{test.quote}&rdquo;
                 </p>
               </div>
             </div>
@@ -329,13 +331,13 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
 
               <div className={`text-[10px] leading-snug space-y-0.5 ${isLight ? 'text-[#4E544F]' : 'text-[#8da396]'}`}>
                 <div>
-                  <span>Condition: </span>
+                  <span>{t.testimonials.conditionLabel} </span>
                   <strong className={isLight ? 'text-[#141815]' : 'text-[#f5f3ec]'}>
                     {test.condition}
                   </strong>
                 </div>
                 <div>
-                  <span>Clinician: </span>
+                  <span>{t.testimonials.clinicianLabel} </span>
                   <span className={`font-medium ${isLight ? 'text-[#24593C]' : 'text-emerald-400'}`}>
                     {test.practitioner}
                   </span>
@@ -355,12 +357,12 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
               : 'bg-[#081810] border border-[#234b3c]'
           }`}
         >
-          <div className="text-center sm:text-left space-y-0.5">
+          <div className="text-center sm:text-start space-y-0.5">
             <h4 className={`font-serif-classic font-bold text-sm ${isLight ? 'text-[#141815]' : 'text-[#f5f3ec]'}`}>
-              Looking for Personalized Clinical Care?
+              {t.testimonials.lookingForCare}
             </h4>
             <p className={`text-xs ${isLight ? 'text-[#4E544F]' : 'text-[#8da396]'}`}>
-              Appointments go first, then walk-ins · Sat–Thu 8:30am – 6:00pm
+              {t.brand.hoursPolicy}
             </p>
           </div>
 
@@ -372,7 +374,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
                 : 'bg-[#d4af37] text-black hover:brightness-110'
             }`}
           >
-            Book Visit
+            {t.testimonials.bookVisit}
           </button>
         </div>
       )}

@@ -5,6 +5,7 @@ import {
   IncomeStatementReport,
   TrialBalanceReport,
 } from '../../utils/accountingEngine';
+import { useCurrency } from '../../context/CurrencyContext';
 
 interface FinancialReportsPanelProps {
   asOfDate: string;
@@ -21,6 +22,7 @@ export const FinancialReportsPanel: React.FC<FinancialReportsPanelProps> = ({
   balanceSheet,
   trialBalance,
 }) => {
+  const { currency, formatPrice } = useCurrency();
   const [statement, setStatement] = useState<StatementTab>('pnl');
 
   const handleExportCsv = () => {
@@ -157,7 +159,7 @@ export const FinancialReportsPanel: React.FC<FinancialReportsPanelProps> = ({
             <div className="text-right">
               <div className="text-[10px] uppercase text-[#8da396]">Net Income</div>
               <div className="text-lg font-bold font-mono tabular-nums text-emerald-400">
-                ${profitAndLoss.netIncome.toFixed(2)}
+                <span dir="ltr">{formatPrice(profitAndLoss.netIncome)}</span>
               </div>
             </div>
           </div>
@@ -174,15 +176,15 @@ export const FinancialReportsPanel: React.FC<FinancialReportsPanelProps> = ({
                       <span className="font-mono text-[#8da396] mr-2">{r.accountNumber}</span>
                       {r.name}
                     </span>
-                    <span className="font-mono tabular-nums text-[#f5f3ec]">
-                      ${r.amount.toFixed(2)}
+                    <span dir="ltr" className="font-mono tabular-nums text-[#f5f3ec] whitespace-nowrap">
+                      {formatPrice(r.amount)}
                     </span>
                   </div>
                 ))}
                 <div className="py-2 flex justify-between font-bold text-[#d4af37]">
                   <span>Total Operating Revenue</span>
-                  <span className="font-mono tabular-nums">
-                    ${profitAndLoss.totalRevenue.toFixed(2)}
+                  <span dir="ltr" className="font-mono tabular-nums whitespace-nowrap">
+                    {formatPrice(profitAndLoss.totalRevenue)}
                   </span>
                 </div>
               </div>
@@ -199,15 +201,15 @@ export const FinancialReportsPanel: React.FC<FinancialReportsPanelProps> = ({
                       <span className="font-mono text-[#8da396] mr-2">{r.accountNumber}</span>
                       {r.name}
                     </span>
-                    <span className="font-mono tabular-nums text-[#a6b6ad]">
-                      ${r.amount.toFixed(2)}
+                    <span dir="ltr" className="font-mono tabular-nums text-[#a6b6ad] whitespace-nowrap">
+                      {formatPrice(r.amount)}
                     </span>
                   </div>
                 ))}
                 <div className="py-2 flex justify-between font-bold text-[#f5f3ec]">
                   <span>Gross Profit</span>
-                  <span className="font-mono tabular-nums">
-                    ${profitAndLoss.grossProfit.toFixed(2)}
+                  <span dir="ltr" className="font-mono tabular-nums whitespace-nowrap">
+                    {formatPrice(profitAndLoss.grossProfit)}
                   </span>
                 </div>
               </div>
@@ -224,15 +226,15 @@ export const FinancialReportsPanel: React.FC<FinancialReportsPanelProps> = ({
                       <span className="font-mono text-[#8da396] mr-2">{r.accountNumber}</span>
                       {r.name}
                     </span>
-                    <span className="font-mono tabular-nums text-[#a6b6ad]">
-                      ${r.amount.toFixed(2)}
+                    <span dir="ltr" className="font-mono tabular-nums text-[#a6b6ad] whitespace-nowrap">
+                      {formatPrice(r.amount)}
                     </span>
                   </div>
                 ))}
                 <div className="py-2.5 flex justify-between font-bold text-sm text-emerald-400 border-t border-[#1b3b2f]">
                   <span>Net Operating Income</span>
-                  <span className="font-mono tabular-nums">
-                    ${profitAndLoss.netIncome.toFixed(2)}
+                  <span dir="ltr" className="font-mono tabular-nums whitespace-nowrap">
+                    {formatPrice(profitAndLoss.netIncome)}
                   </span>
                 </div>
               </div>
@@ -266,7 +268,7 @@ export const FinancialReportsPanel: React.FC<FinancialReportsPanelProps> = ({
               ) : (
                 <>
                   <AlertTriangle className="w-3.5 h-3.5" />
-                  <span>Out of Balance: ${balanceSheet.difference.toFixed(2)}</span>
+                  <span>Out of Balance: {formatPrice(balanceSheet.difference)}</span>
                 </>
               )}
             </div>
@@ -285,15 +287,15 @@ export const FinancialReportsPanel: React.FC<FinancialReportsPanelProps> = ({
                       <span className="font-mono text-[#8da396] mr-2">{r.accountNumber}</span>
                       {r.name}
                     </span>
-                    <span className="font-mono tabular-nums text-[#f5f3ec]">
-                      ${r.amount.toFixed(2)}
+                    <span dir="ltr" className="font-mono tabular-nums text-[#f5f3ec] whitespace-nowrap">
+                      {formatPrice(r.amount)}
                     </span>
                   </div>
                 ))}
                 <div className="py-2.5 flex justify-between font-bold text-sm text-[#d4af37]">
                   <span>Total Assets</span>
-                  <span className="font-mono tabular-nums">
-                    ${balanceSheet.totalAssets.toFixed(2)}
+                  <span dir="ltr" className="font-mono tabular-nums whitespace-nowrap">
+                    {formatPrice(balanceSheet.totalAssets)}
                   </span>
                 </div>
               </div>
@@ -312,15 +314,15 @@ export const FinancialReportsPanel: React.FC<FinancialReportsPanelProps> = ({
                         <span className="font-mono text-[#8da396] mr-2">{r.accountNumber}</span>
                         {r.name}
                       </span>
-                      <span className="font-mono tabular-nums text-[#f5f3ec]">
-                        ${r.amount.toFixed(2)}
+                      <span dir="ltr" className="font-mono tabular-nums text-[#f5f3ec] whitespace-nowrap">
+                        {formatPrice(r.amount)}
                       </span>
                     </div>
                   ))}
                   <div className="py-2 flex justify-between font-bold text-amber-300">
                     <span>Total Liabilities</span>
-                    <span className="font-mono tabular-nums">
-                      ${balanceSheet.totalLiabilities.toFixed(2)}
+                    <span dir="ltr" className="font-mono tabular-nums whitespace-nowrap">
+                      {formatPrice(balanceSheet.totalLiabilities)}
                     </span>
                   </div>
                 </div>
@@ -337,8 +339,8 @@ export const FinancialReportsPanel: React.FC<FinancialReportsPanelProps> = ({
                         <span className="font-mono text-[#8da396] mr-2">{r.accountNumber}</span>
                         {r.name}
                       </span>
-                      <span className="font-mono tabular-nums text-[#f5f3ec]">
-                        ${r.amount.toFixed(2)}
+                      <span dir="ltr" className="font-mono tabular-nums text-[#f5f3ec] whitespace-nowrap">
+                        {formatPrice(r.amount)}
                       </span>
                     </div>
                   ))}
@@ -346,14 +348,14 @@ export const FinancialReportsPanel: React.FC<FinancialReportsPanelProps> = ({
                     <span className="text-emerald-300 font-medium">
                       Current Period Net Income
                     </span>
-                    <span className="font-mono tabular-nums text-emerald-300">
-                      ${balanceSheet.currentPeriodNetIncome.toFixed(2)}
+                    <span dir="ltr" className="font-mono tabular-nums text-emerald-300 whitespace-nowrap">
+                      {formatPrice(balanceSheet.currentPeriodNetIncome)}
                     </span>
                   </div>
                   <div className="py-2.5 flex justify-between font-bold text-sm text-[#d4af37]">
                     <span>Total Liabilities &amp; Equity</span>
-                    <span className="font-mono tabular-nums">
-                      ${balanceSheet.totalLiabilitiesAndEquity.toFixed(2)}
+                    <span dir="ltr" className="font-mono tabular-nums whitespace-nowrap">
+                      {formatPrice(balanceSheet.totalLiabilitiesAndEquity)}
                     </span>
                   </div>
                 </div>
@@ -388,7 +390,7 @@ export const FinancialReportsPanel: React.FC<FinancialReportsPanelProps> = ({
               ) : (
                 <>
                   <AlertTriangle className="w-3.5 h-3.5" />
-                  <span>Imbalance: ${trialBalance.difference.toFixed(2)}</span>
+                  <span>Imbalance: {formatPrice(trialBalance.difference)}</span>
                 </>
               )}
             </div>
@@ -401,8 +403,8 @@ export const FinancialReportsPanel: React.FC<FinancialReportsPanelProps> = ({
                   <th className="py-2.5 px-4">Acct #</th>
                   <th className="py-2.5 px-4">Account Name</th>
                   <th className="py-2.5 px-4">Type</th>
-                  <th className="py-2.5 px-4 text-right">Debit Balance ($)</th>
-                  <th className="py-2.5 px-4 text-right">Credit Balance ($)</th>
+                  <th className="py-2.5 px-4 text-right">Debit Balance ({currency === 'AFN' ? 'AFG' : '$'})</th>
+                  <th className="py-2.5 px-4 text-right">Credit Balance ({currency === 'AFN' ? 'AFG' : '$'})</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1b3b2f]/60">
@@ -413,11 +415,11 @@ export const FinancialReportsPanel: React.FC<FinancialReportsPanelProps> = ({
                     </td>
                     <td className="py-2.5 px-4 font-medium text-[#f5f3ec]">{row.name}</td>
                     <td className="py-2.5 px-4 text-[#a6b6ad]">{row.accountType}</td>
-                    <td className="py-2.5 px-4 text-right font-mono tabular-nums text-[#f5f3ec]">
-                      {row.debitBalance > 0 ? `$${row.debitBalance.toFixed(2)}` : '—'}
+                    <td className="py-2.5 px-4 text-right font-mono tabular-nums text-[#f5f3ec] whitespace-nowrap">
+                      {row.debitBalance > 0 ? <span dir="ltr">{formatPrice(row.debitBalance)}</span> : '—'}
                     </td>
-                    <td className="py-2.5 px-4 text-right font-mono tabular-nums text-[#f5f3ec]">
-                      {row.creditBalance > 0 ? `$${row.creditBalance.toFixed(2)}` : '—'}
+                    <td className="py-2.5 px-4 text-right font-mono tabular-nums text-[#f5f3ec] whitespace-nowrap">
+                      {row.creditBalance > 0 ? <span dir="ltr">{formatPrice(row.creditBalance)}</span> : '—'}
                     </td>
                   </tr>
                 ))}
@@ -427,11 +429,11 @@ export const FinancialReportsPanel: React.FC<FinancialReportsPanelProps> = ({
                   <td colSpan={3} className="py-3 px-4 text-right text-[#a6b6ad]">
                     Trial Balance Totals
                   </td>
-                  <td className="py-3 px-4 text-right font-mono tabular-nums text-[#d4af37]">
-                    ${trialBalance.totalDebits.toFixed(2)}
+                  <td className="py-3 px-4 text-right font-mono tabular-nums text-[#d4af37] whitespace-nowrap">
+                    <span dir="ltr">{formatPrice(trialBalance.totalDebits)}</span>
                   </td>
-                  <td className="py-3 px-4 text-right font-mono tabular-nums text-[#d4af37]">
-                    ${trialBalance.totalCredits.toFixed(2)}
+                  <td className="py-3 px-4 text-right font-mono tabular-nums text-[#d4af37] whitespace-nowrap">
+                    <span dir="ltr">{formatPrice(trialBalance.totalCredits)}</span>
                   </td>
                 </tr>
               </tfoot>

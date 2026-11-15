@@ -13,6 +13,9 @@ import {
 } from 'lucide-react';
 import { BLOG_POSTS, HERBAL_PRODUCTS } from '../data/clinicData';
 import { BlogPost } from '../types/clinic';
+import { useLanguage } from '../context/LanguageContext';
+import { pickLocalized } from '../utils/i18n';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface HerbalBlogProps {
   onSelectShopProduct?: (productId: string) => void;
@@ -21,19 +24,27 @@ interface HerbalBlogProps {
 
 export const HerbalBlog: React.FC<HerbalBlogProps> = ({
   onSelectShopProduct,
-  onOpenBooking,
 }) => {
+  const { language, t } = useLanguage();
+  const { formatPrice } = useCurrency();
+  const tx = <T,>(en: T, ps: T, fa: T) => pickLocalized(language, { en, ps, fa });
+
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [readingPost, setReadingPost] = useState<BlogPost | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const categories = [
-    'All',
-    'Digestive Health',
-    'Immunity & Lungs',
-    'Pain & Inflammation',
-    'Stress & Sleep',
+    { key: 'All', label: t.shop.allCategory },
+    { key: 'Digestive Health', label: tx('Digestive Health', 'هاضمې روغتیا', 'سلامت هاضمه') },
+    { key: 'Immunity & Lungs', label: tx('Immunity & Lungs', 'معافیت او سږي', 'معافیت و ریه‌ها') },
+    { key: 'Pain & Inflammation', label: tx('Pain & Inflammation', 'درد او التهاب', 'درد و التهاب') },
+    { key: 'Stress & Sleep', label: tx('Stress & Sleep', 'فشار او خوب', 'استرس و خواب') },
   ];
+
+  const categoryLabelMap: Record<string, string> = Object.fromEntries(
+    categories.map((c) => [c.key, c.label])
+  );
 
   const filteredPosts = useMemo(() => {
     return BLOG_POSTS.filter((post) => {
@@ -56,8 +67,9 @@ export const HerbalBlog: React.FC<HerbalBlogProps> = ({
         url: window.location.href,
       }).catch(() => {});
     } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Article link copied to clipboard!');
+      navigator.clipboard?.writeText(window.location.href).catch(() => {});
+      setCopiedId(post.id);
+      setTimeout(() => setCopiedId(null), 2000);
     }
   };
 
@@ -73,13 +85,13 @@ export const HerbalBlog: React.FC<HerbalBlogProps> = ({
         <div className="text-center max-w-3xl mx-auto mb-14">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0d2319] border border-[#c5a059]/40 text-[#f5e6c8] text-xs font-semibold tracking-wider uppercase mb-3">
             <BookOpen className="w-3.5 h-3.5 text-[#d4af37]" />
-            <span>Botanical Medicine & Remedies Compendium</span>
+            <span>{t.blog.badge}</span>
           </div>
           <h2 className="font-serif-classic text-3xl sm:text-4xl lg:text-5xl font-bold text-[#f5f3ec]">
-            Herbal Remedies & Clinical Insights
+            {tx('Herbal Remedies & Clinical Insights', 'بوټي درمل او کلینیکي لیکنې', 'نسخه‌های گیاهی و مقالات کلینیکی')}
           </h2>
           <p className="mt-3 text-base text-[#a6b6ad]">
-            Ancient formulas, evidence-backed preparation guides, and clinical insights curated by our Master Herbalists.
+            {t.blog.subtitle}
           </p>
         </div>
 
@@ -88,27 +100,27 @@ export const HerbalBlog: React.FC<HerbalBlogProps> = ({
           <div className="flex items-center gap-1.5 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
             {categories.map((cat) => (
               <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
+                key={cat.key}
+                onClick={() => setSelectedCategory(cat.key)}
                 className={`px-3.5 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
-                  selectedCategory === cat
+                  selectedCategory === cat.key
                     ? 'bg-gradient-to-r from-[#d4af37] to-[#aa8222] text-black font-bold shadow-md'
                     : 'bg-[#06120d] text-[#b8c9bf] hover:text-[#f5f3ec] border border-[#1b3b2f]'
                 }`}
               >
-                {cat}
+                {cat.label}
               </button>
             ))}
           </div>
 
           <div className="relative sm:w-72">
-            <Search className="w-4 h-4 text-[#8da396] absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[#8da396] absolute start-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search remedies, herbs..."
-              className="w-full pl-9 pr-3 py-2 rounded-lg bg-[#06120d] border border-[#1b3b2f] focus:border-[#d4af37] text-xs text-[#f5f3ec] placeholder-[#4f675a] focus:outline-none"
+              placeholder={tx('Search remedies, herbs...', 'درمل او بوټي ولټوئ...', 'جستجوی دارو و گیاه...')}
+              className="w-full ps-9 pe-3 py-2 rounded-lg bg-[#06120d] border border-[#1b3b2f] focus:border-[#d4af37] text-xs text-[#f5f3ec] placeholder-[#4f675a] focus:outline-none"
             />
           </div>
         </div>
@@ -131,9 +143,9 @@ export const HerbalBlog: React.FC<HerbalBlogProps> = ({
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#081810] via-transparent to-transparent opacity-80" />
-                <div className="absolute top-4 left-4">
+                <div className="absolute top-4 start-4">
                   <span className="text-[11px] font-semibold text-[#f5e6c8] bg-black/60 backdrop-blur-md px-3 py-1 rounded-md border border-[#c5a059]/40">
-                    {post.category}
+                    {categoryLabelMap[post.category] || post.category}
                   </span>
                 </div>
               </div>
@@ -165,13 +177,13 @@ export const HerbalBlog: React.FC<HerbalBlogProps> = ({
                   <div className="mt-4 p-3 rounded-lg bg-[#06140e] border border-[#1b3b2f] flex items-center justify-between text-xs">
                     <div>
                       <span className="text-[10px] text-[#8da396] block uppercase tracking-wider">
-                        Featured Botanical:
+                        {tx('Featured Botanical:', 'مهم بوټی:', 'گیاه محوری:')}
                       </span>
                       <span className="font-semibold text-[#d4af37]">
                         {post.content.keyHerb.name}
                       </span>
                     </div>
-                    <span className="text-[11px] text-[#6b8275] italic">
+                    <span className="text-[11px] text-[#6b8275] italic" dir="ltr">
                       {post.content.keyHerb.latinName}
                     </span>
                   </div>
@@ -199,8 +211,8 @@ export const HerbalBlog: React.FC<HerbalBlogProps> = ({
                     onClick={() => setReadingPost(post)}
                     className="text-xs font-bold text-[#d4af37] hover:underline flex items-center gap-1.5 cursor-pointer"
                   >
-                    <span>Read Full Guide</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <span>{tx('Read Full Guide', 'بشپړ لارښود ولولئ', 'مطالعه راهنمای کامل')}</span>
+                    <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
                   </button>
                 </div>
               </div>
@@ -216,15 +228,15 @@ export const HerbalBlog: React.FC<HerbalBlogProps> = ({
             {/* Close Button */}
             <button
               onClick={() => setReadingPost(null)}
-              aria-label="Close article"
-              className="absolute top-5 right-5 p-2 rounded-lg bg-[#0e2118] text-[#8da396] hover:text-[#f5f3ec] border border-[#1b3b2f] transition-colors cursor-pointer"
+              aria-label={t.about.closeBtn}
+              className="absolute top-5 end-5 p-2 rounded-lg bg-[#0e2118] text-[#8da396] hover:text-[#f5f3ec] border border-[#1b3b2f] transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
             {/* Category & Read Time */}
             <div className="flex items-center gap-3 text-xs text-[#d4af37] font-semibold uppercase tracking-wider mb-2">
-              <span>{readingPost.category}</span>
+              <span>{categoryLabelMap[readingPost.category] || readingPost.category}</span>
               <span className="text-[#1b3b2f]">·</span>
               <span className="flex items-center gap-1 text-[#a6b6ad]">
                 <Clock className="w-3.5 h-3.5 text-[#d4af37]" />
@@ -260,7 +272,9 @@ export const HerbalBlog: React.FC<HerbalBlogProps> = ({
                 className="p-2 rounded-lg bg-[#0e2118] border border-[#1b3b2f] text-[#8da396] hover:text-[#d4af37] text-xs flex items-center gap-1.5 cursor-pointer"
               >
                 <Share2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Share</span>
+                <span className="hidden sm:inline">
+                  {copiedId === readingPost.id ? tx('Copied!', 'کاپي شو!', 'کپی شد!') : tx('Share', 'شریکول', 'اشتراک‌گذاری')}
+                </span>
               </button>
             </div>
 
@@ -271,7 +285,7 @@ export const HerbalBlog: React.FC<HerbalBlogProps> = ({
               </p>
 
               {readingPost.content.historicalContext && (
-                <div className="p-4 rounded-xl bg-[#0b2418] border-l-4 border-[#d4af37] italic text-xs text-[#d8e2dc]">
+                <div className="p-4 rounded-xl bg-[#0b2418] border-s-4 border-[#d4af37] italic text-xs text-[#d8e2dc]">
                   {readingPost.content.historicalContext}
                 </div>
               )}
@@ -377,8 +391,8 @@ export const HerbalBlog: React.FC<HerbalBlogProps> = ({
                       <h4 className="font-serif-classic font-bold text-sm text-[#f5f3ec]">
                         {linkedProd.name}
                       </h4>
-                      <span className="text-xs font-bold text-[#d4af37]">
-                        ${linkedProd.price.toFixed(2)}
+                      <span className="text-xs font-bold text-[#d4af37] tabular-nums inline-block" dir="ltr">
+                        {formatPrice(linkedProd.price)}
                       </span>
                     </div>
                   </div>
@@ -395,7 +409,7 @@ export const HerbalBlog: React.FC<HerbalBlogProps> = ({
                     className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#aa8222] text-black font-bold text-xs flex items-center gap-1.5 shadow-md cursor-pointer whitespace-nowrap"
                   >
                     <ShoppingBag className="w-3.5 h-3.5 text-black" />
-                    <span>Get This Remedy</span>
+                    <span>{tx('Get This Remedy', 'دا درمل ترلاسه کړئ', 'دریافت این دارو')}</span>
                   </button>
                 </div>
               );
@@ -407,7 +421,7 @@ export const HerbalBlog: React.FC<HerbalBlogProps> = ({
                 onClick={() => setReadingPost(null)}
                 className="px-6 py-2.5 rounded-lg bg-[#153426] text-xs font-semibold text-[#f5f3ec] border border-[#2d5e4b] hover:bg-[#1b4330]"
               >
-                Close Article
+                {t.about.closeBtn}
               </button>
             </div>
           </div>

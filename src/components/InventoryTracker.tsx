@@ -10,6 +10,7 @@ import {
   Package,
 } from 'lucide-react';
 import { useClinicConfig } from '../context/ClinicConfigContext';
+import { useCurrency } from '../context/CurrencyContext';
 import { classifyInventoryStatus } from '../utils/clinicLogic';
 
 interface InventoryTrackerProps {
@@ -30,6 +31,7 @@ interface InventoryTrackerProps {
  */
 export const InventoryTracker: React.FC<InventoryTrackerProps> = ({ onInventoryUpdated }) => {
   const { medicines, lowStockItems, settings, refreshInventory } = useClinicConfig();
+  const { formatPrice } = useCurrency();
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [restockingId, setRestockingId] = useState<number | null>(null);
   const [emailNotice, setEmailNotice] = useState<string | null>(null);
@@ -178,11 +180,11 @@ export const InventoryTracker: React.FC<InventoryTrackerProps> = ({ onInventoryU
                     <td className="py-3 px-4 font-mono text-[11px] text-[#d4af37] whitespace-nowrap">
                       {med.barcodeQr}
                     </td>
-                    <td className="py-3 px-4 text-right font-mono tabular-nums text-[#f5f3ec]">
-                      ${Number(med.unitPrice).toFixed(2)}
+                    <td className="py-3 px-4 text-right font-mono tabular-nums text-[#f5f3ec] whitespace-nowrap">
+                      <span dir="ltr">{formatPrice(Number(med.unitPrice))}</span>
                     </td>
-                    <td className="py-3 px-4 text-right font-mono tabular-nums text-[#a6b6ad]">
-                      ${Number(med.cogsPrice).toFixed(2)}
+                    <td className="py-3 px-4 text-right font-mono tabular-nums text-[#a6b6ad] whitespace-nowrap">
+                      <span dir="ltr">{formatPrice(Number(med.cogsPrice))}</span>
                     </td>
                     <td className="py-3 px-4 text-right font-mono tabular-nums font-bold text-[#f5f3ec]">
                       {med.stockQuantity} units

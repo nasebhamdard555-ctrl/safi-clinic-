@@ -13,6 +13,7 @@ import { InventoryTracker } from '../components/InventoryTracker';
 import { SocialSettingsPanel } from '../components/SocialSettingsPanel';
 import { Accounting2009Workspace } from '../components/moa2009/Accounting2009Workspace';
 import { useClinicConfig } from '../context/ClinicConfigContext';
+import { useLanguage } from '../context/LanguageContext';
 
 interface AdminDashboardPageProps {
   onNavigateToPos: () => void;
@@ -20,17 +21,10 @@ interface AdminDashboardPageProps {
 
 type AdminTab = 'accounting' | 'moa2009' | 'inventory' | 'settings';
 
-/**
- * AdminDashboardPage
- * ----------------------------------------------------------------------------
- * Executive Clinic Management Hub unifying:
- *   1. Real-Time Financial & Accounting Analytics + Automated Ledger
- *   2. Smart Dispensary Inventory Tracker & Proactive Low-Stock Alerts
- *   3. Configurable Social Media Channels & Overhead Deduction Parameters
- */
 export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   onNavigateToPos,
 }) => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<AdminTab>('accounting');
   const [analyticsRefreshTick, setAnalyticsRefreshTick] = useState(0);
   const { lowStockItems } = useClinicConfig();
@@ -46,13 +40,13 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-[#1b3b2f]">
           <div className="space-y-1.5">
             <span className="text-xs font-bold uppercase tracking-widest text-[#d4af37] block">
-              Safi Natural Care Clinic · Executive Operations
+              {t.posAdmin.adminKicker}
             </span>
             <h1 className="font-serif-classic text-3xl sm:text-4xl font-bold text-[#f5f3ec]">
-              Clinical Accounting & Inventory Console
+              {t.posAdmin.adminTitle}
             </h1>
             <p className="text-xs sm:text-sm text-[#a6b6ad] max-w-2xl">
-              Live P&L analytics across Kabul outpatient consultations and dispensary sales, automated COGS ledgering, stock monitoring, and site-wide channel settings.
+              {t.posAdmin.adminSub}
             </p>
           </div>
 
@@ -62,8 +56,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-[#d4af37] to-[#aa8222] text-black font-bold text-xs uppercase tracking-wider shadow-lg hover:brightness-110 transition-all cursor-pointer shrink-0"
           >
             <QrCode className="w-4 h-4" />
-            <span>Open POS & QR Triage</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>{t.posAdmin.openPosBtn}</span>
+            <ArrowRight className="w-4 h-4 rtl:rotate-180" />
           </button>
         </div>
 
@@ -85,7 +79,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             }`}
           >
             <BarChart3 className="w-4 h-4" />
-            <span>Financial Analytics & Ledger</span>
+            <span>{t.posAdmin.tabAccounting}</span>
           </button>
 
           <button
@@ -100,7 +94,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            <span>Accounting 2009 Suite</span>
+            <span>{t.posAdmin.tabMoa2009}</span>
           </button>
 
           <button
@@ -115,7 +109,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             }`}
           >
             <Package className="w-4 h-4" />
-            <span>Inventory & Restock Alerts</span>
+            <span>{t.posAdmin.tabInventory}</span>
             {lowStockItems.length > 0 && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500 text-black text-[10px] font-extrabold font-mono tabular-nums">
                 <AlertTriangle className="w-3 h-3" />
@@ -136,7 +130,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             }`}
           >
             <Sliders className="w-4 h-4" />
-            <span>Social & Overhead Settings</span>
+            <span>{t.posAdmin.tabSettings}</span>
           </button>
         </div>
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FileText, Plus, DollarSign, CheckCircle2, AlertCircle } from 'lucide-react';
 import { ArInvoiceRecord } from '../../types/clinic';
 import { AgingBucketsSummary } from '../../utils/accountingEngine';
+import { useCurrency } from '../../context/CurrencyContext';
 
 interface ReceivablesPanelProps {
   invoices: ArInvoiceRecord[];
@@ -14,6 +15,7 @@ export const ReceivablesPanel: React.FC<ReceivablesPanelProps> = ({
   aging,
   onRefresh,
 }) => {
+  const { formatPrice } = useCurrency();
   const [showForm, setShowForm] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
@@ -85,7 +87,7 @@ export const ReceivablesPanel: React.FC<ReceivablesPanelProps> = ({
       if (!res.ok) throw new Error(data.error || 'Failed to record payment');
       setFeedback({
         type: 'ok',
-        msg: `Received $${remaining.toFixed(2)} for ${inv.invoiceNumber} -> Deposited to Checking (1020).`,
+        msg: `Received ${formatPrice(remaining)} for ${inv.invoiceNumber} -> Deposited to Checking (1020).`,
       });
       onRefresh();
     } catch (err: any) {
@@ -124,31 +126,31 @@ export const ReceivablesPanel: React.FC<ReceivablesPanelProps> = ({
         <div className="p-3.5 rounded-lg bg-[#05110a] border border-[#1b3b2f]">
           <div className="text-[10px] uppercase tracking-wider text-[#8da396]">Current</div>
           <div className="text-base font-bold font-mono tabular-nums text-[#f5f3ec] mt-0.5">
-            ${aging.current.toFixed(2)}
+            <span dir="ltr">{formatPrice(aging.current)}</span>
           </div>
         </div>
         <div className="p-3.5 rounded-lg bg-[#05110a] border border-[#1b3b2f]">
           <div className="text-[10px] uppercase tracking-wider text-[#8da396]">1–30 Days</div>
           <div className="text-base font-bold font-mono tabular-nums text-amber-300 mt-0.5">
-            ${aging.days1to30.toFixed(2)}
+            <span dir="ltr">{formatPrice(aging.days1to30)}</span>
           </div>
         </div>
         <div className="p-3.5 rounded-lg bg-[#05110a] border border-[#1b3b2f]">
           <div className="text-[10px] uppercase tracking-wider text-[#8da396]">31–60 Days</div>
           <div className="text-base font-bold font-mono tabular-nums text-amber-400 mt-0.5">
-            ${aging.days31to60.toFixed(2)}
+            <span dir="ltr">{formatPrice(aging.days31to60)}</span>
           </div>
         </div>
         <div className="p-3.5 rounded-lg bg-[#05110a] border border-[#1b3b2f]">
           <div className="text-[10px] uppercase tracking-wider text-[#8da396]">61+ Days</div>
           <div className="text-base font-bold font-mono tabular-nums text-red-400 mt-0.5">
-            ${aging.days61Plus.toFixed(2)}
+            <span dir="ltr">{formatPrice(aging.days61Plus)}</span>
           </div>
         </div>
         <div className="p-3.5 rounded-lg bg-[#07160f] border border-[#d4af37]/60 col-span-2 sm:col-span-1">
           <div className="text-[10px] uppercase tracking-wider text-[#d4af37]">Total Open A/R</div>
           <div className="text-base font-bold font-mono tabular-nums text-[#d4af37] mt-0.5">
-            ${aging.totalOpen.toFixed(2)}
+            <span dir="ltr">{formatPrice(aging.totalOpen)}</span>
           </div>
         </div>
       </div>
@@ -311,14 +313,14 @@ export const ReceivablesPanel: React.FC<ReceivablesPanelProps> = ({
                     <td className="py-2.5 px-4 font-mono tabular-nums text-[#a6b6ad]">
                       {inv.dueDate}
                     </td>
-                    <td className="py-2.5 px-4 text-right font-mono tabular-nums text-[#f5f3ec]">
-                      ${inv.totalAmount.toFixed(2)}
+                    <td className="py-2.5 px-4 text-right font-mono tabular-nums text-[#f5f3ec] whitespace-nowrap">
+                      <span dir="ltr">{formatPrice(inv.totalAmount)}</span>
                     </td>
-                    <td className="py-2.5 px-4 text-right font-mono tabular-nums text-emerald-400">
-                      ${inv.amountPaid.toFixed(2)}
+                    <td className="py-2.5 px-4 text-right font-mono tabular-nums text-emerald-400 whitespace-nowrap">
+                      <span dir="ltr">{formatPrice(inv.amountPaid)}</span>
                     </td>
-                    <td className="py-2.5 px-4 text-right font-mono tabular-nums font-bold text-amber-300">
-                      ${balanceDue.toFixed(2)}
+                    <td className="py-2.5 px-4 text-right font-mono tabular-nums font-bold text-amber-300 whitespace-nowrap">
+                      <span dir="ltr">{formatPrice(balanceDue)}</span>
                     </td>
                     <td className="py-2.5 px-4">
                       <span

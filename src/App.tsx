@@ -26,6 +26,8 @@ import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { PosTriagePage } from './pages/PosTriagePage';
 import { CartTotals, calculateCartTotals } from './utils/clinicLogic';
 import { BotanicalImage } from './components/BotanicalImage';
+import { useLanguage } from './context/LanguageContext';
+import { useCurrency } from './context/CurrencyContext';
 
 export type PageType =
   | 'home'
@@ -52,92 +54,94 @@ export const PAGE_THEMES: Record<
   }
 > = {
   home: {
-    bg: 'bg-[#F5F2EB]',
-    text: 'text-[#141815]',
-    textSelection: 'selection:bg-[#8C5A32] selection:text-[#FAF7F2]',
-    accentColor: '#8C5A32',
-    name: 'Warm Limestone Editorial',
+    bg: 'bg-[#06110C]',
+    text: 'text-[#F4F0E6]',
+    textSelection: 'selection:bg-[#D4AF37] selection:text-[#06110C]',
+    accentColor: '#D4AF37',
+    name: 'Obsidian Botanical & Gold',
   },
   treatments: {
-    bg: 'bg-[#EBF1EC]',
-    text: 'text-[#12261A]',
-    textSelection: 'selection:bg-[#1F4A32] selection:text-[#F9FBF9]',
-    accentColor: '#1F4A32',
-    name: 'Soft Sage Mist',
+    bg: 'bg-[#07150F]',
+    text: 'text-[#F4F0E6]',
+    textSelection: 'selection:bg-[#D4AF37] selection:text-[#07150F]',
+    accentColor: '#D4AF37',
+    name: 'Deep Forest Emerald',
   },
   shop: {
-    bg: 'bg-[#F3ECE3]',
-    text: 'text-[#211813]',
-    textSelection: 'selection:bg-[#9E5334] selection:text-[#FAF6F0]',
-    accentColor: '#9E5334',
-    name: 'Warm Desert Sand',
+    bg: 'bg-[#081610]',
+    text: 'text-[#F4F0E6]',
+    textSelection: 'selection:bg-[#D4AF37] selection:text-[#081610]',
+    accentColor: '#D4AF37',
+    name: 'Apothecary Pine & Gold',
   },
   about: {
-    bg: 'bg-[#111E17]',
+    bg: 'bg-[#08140E]',
     text: 'text-[#F4F0E6]',
-    textSelection: 'selection:bg-[#D4AF7A] selection:text-[#111E17]',
-    accentColor: '#D4AF7A',
+    textSelection: 'selection:bg-[#D4AF37] selection:text-[#08140E]',
+    accentColor: '#D4AF37',
     name: 'Midnight Botanical',
   },
   booking: {
-    bg: 'bg-[#FAF8F5]',
-    text: 'text-[#18201B]',
-    textSelection: 'selection:bg-[#18201B] selection:text-[#FAF8F5]',
-    accentColor: '#18201B',
-    name: 'Crisp Alabaster',
+    bg: 'bg-[#07130D]',
+    text: 'text-[#F4F0E6]',
+    textSelection: 'selection:bg-[#D4AF37] selection:text-[#07130D]',
+    accentColor: '#D4AF37',
+    name: 'Obsidian Clinic Desk',
   },
   contact: {
-    bg: 'bg-[#FAF8F5]',
-    text: 'text-[#18201B]',
-    textSelection: 'selection:bg-[#18201B] selection:text-[#FAF8F5]',
-    accentColor: '#18201B',
-    name: 'Crisp Alabaster',
+    bg: 'bg-[#07130D]',
+    text: 'text-[#F4F0E6]',
+    textSelection: 'selection:bg-[#D4AF37] selection:text-[#07130D]',
+    accentColor: '#D4AF37',
+    name: 'Obsidian Clinic Desk',
   },
   'symptom-checker': {
-    bg: 'bg-[#04171c]',
-    text: 'text-[#f5f3ec]',
-    textSelection: 'selection:bg-[#06b6d4] selection:text-black',
-    accentColor: '#06b6d4',
-    name: 'Diagnostic Cyan-Teal',
+    bg: 'bg-[#061412]',
+    text: 'text-[#F4F0E6]',
+    textSelection: 'selection:bg-[#D4AF37] selection:text-[#061412]',
+    accentColor: '#D4AF37',
+    name: 'Diagnostic Botanical Dark',
   },
   testimonials: {
-    bg: 'bg-[#0a0a0c]',
-    text: 'text-[#f5f3ec]',
-    textSelection: 'selection:bg-[#fbbf24] selection:text-black',
-    accentColor: '#fbbf24',
-    name: 'Deep Obsidian Onyx & Gold',
+    bg: 'bg-[#06110C]',
+    text: 'text-[#F4F0E6]',
+    textSelection: 'selection:bg-[#D4AF37] selection:text-[#06110C]',
+    accentColor: '#D4AF37',
+    name: 'Obsidian Onyx & Gold',
   },
   blog: {
-    bg: 'bg-[#0d1609]',
-    text: 'text-[#f5f3ec]',
-    textSelection: 'selection:bg-[#84cc16] selection:text-black',
-    accentColor: '#84cc16',
-    name: 'Earthy Moss Journal',
+    bg: 'bg-[#08150D]',
+    text: 'text-[#F4F0E6]',
+    textSelection: 'selection:bg-[#D4AF37] selection:text-[#08150D]',
+    accentColor: '#D4AF37',
+    name: 'Forest Monograph Journal',
   },
   'patient-portal': {
-    bg: 'bg-[#050e18]',
-    text: 'text-[#f0f4f8]',
-    textSelection: 'selection:bg-[#38bdf8] selection:text-black',
-    accentColor: '#38bdf8',
+    bg: 'bg-[#06120D]',
+    text: 'text-[#F4F0E6]',
+    textSelection: 'selection:bg-[#D4AF37] selection:text-[#06120D]',
+    accentColor: '#D4AF37',
     name: 'Patient Health Portal',
   },
   admin: {
-    bg: 'bg-[#04110b]',
-    text: 'text-[#f5f3ec]',
-    textSelection: 'selection:bg-[#d4af37] selection:text-black',
-    accentColor: '#d4af37',
+    bg: 'bg-[#04110B]',
+    text: 'text-[#F4F0E6]',
+    textSelection: 'selection:bg-[#D4AF37] selection:text-[#04110B]',
+    accentColor: '#D4AF37',
     name: 'Executive Clinical Accounting',
   },
   'pos-triage': {
-    bg: 'bg-[#04140e]',
-    text: 'text-[#f5f3ec]',
-    textSelection: 'selection:bg-[#22c55e] selection:text-black',
-    accentColor: '#22c55e',
+    bg: 'bg-[#04140E]',
+    text: 'text-[#F4F0E6]',
+    textSelection: 'selection:bg-[#D4AF37] selection:text-[#04140E]',
+    accentColor: '#D4AF37',
     name: 'Dispensary POS & Triage Emerald',
   },
 };
 
 export default function App() {
+  const { dir, t } = useLanguage();
+  const { formatPrice } = useCurrency();
   const [currentPage, setCurrentPage] = useState<PageType>('home');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
@@ -291,9 +295,12 @@ export default function App() {
   const totalCartCount = cartItems.reduce((acc, i) => acc + i.quantity, 0);
   const theme = PAGE_THEMES[currentPage];
 
+  const quickViewLoc = quickViewProduct ? t.productsMap[quickViewProduct.id] : undefined;
+
   return (
     <div
-      className={`min-h-screen ${theme.bg} ${theme.text} relative font-sans transition-colors duration-500 ease-in-out ${theme.textSelection} pb-20 sm:pb-0`}
+      dir={dir}
+      className={`min-h-screen ${theme.bg} ${theme.text} relative font-sans transition-colors duration-500 ease-in-out ${theme.textSelection} overflow-x-clip pb-20 sm:pb-0`}
     >
       {/* Navigation Header */}
       <Navbar
@@ -437,17 +444,17 @@ export default function App() {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm overflow-y-auto"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto"
         >
-          <div className="relative w-full max-w-2xl bg-[#FAF6F0] text-[#211813] border border-[#C9BBAE] rounded-2xl shadow-2xl overflow-hidden my-8 max-h-[90vh] flex flex-col">
-            <div className="sticky top-0 z-10 flex items-center justify-between p-4 bg-[#F3ECE3] border-b border-[#DFD4C7]">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#9E5334]">
-                Formulation Dossier
+          <div className="relative w-full max-w-2xl bg-[#0B1D14] text-[#F4F0E6] border border-[#1D3B2C] rounded-2xl shadow-2xl overflow-hidden my-8 max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 z-10 flex items-center justify-between p-4 bg-[#06110C] border-b border-[#1D3B2C]">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#D4AF37]">
+                {t.quickView.dossierTitle}
               </span>
               <button
                 onClick={() => setQuickViewProduct(null)}
-                aria-label="Close product modal"
-                className="p-1.5 rounded-lg bg-[#EAE0D3] text-[#4B3B31] hover:text-[#211813] transition-colors cursor-pointer"
+                aria-label={t.quickView.closeAria}
+                className="min-w-[38px] min-h-[38px] p-1.5 rounded-lg bg-[#0B1D14] border border-[#1D3B2C] text-[#A6B8AE] hover:text-[#D4AF37] transition-colors flex items-center justify-center cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -455,54 +462,58 @@ export default function App() {
 
             <div className="overflow-y-auto p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                <div className="aspect-square rounded-xl overflow-hidden border border-[#DFD4C7] bg-[#EAE0D3]">
+                <div className="aspect-square rounded-xl overflow-hidden border border-[#1D3B2C] bg-[#06110C]">
                   <BotanicalImage
                     src={quickViewProduct.image}
-                    alt={quickViewProduct.name}
+                    alt={quickViewLoc?.name || quickViewProduct.name}
                     className="w-full h-full object-cover"
                   />
                 </div>
 
                 <div className="space-y-3">
-                  <span className="inline-block px-2.5 py-0.5 rounded bg-[#EAE0D3] border border-[#D4C5B4] text-[10px] font-bold text-[#9E5334] uppercase">
-                    {quickViewProduct.category}
+                  <span className="text-[11px] font-bold text-[#D4AF37] uppercase tracking-wider block">
+                    {t.shop.productCategories[quickViewProduct.category] || quickViewProduct.category}
                   </span>
-                  <h3 className="font-serif-classic text-xl font-bold text-[#211813]">
-                    {quickViewProduct.name}
+                  <h3 className="font-serif-classic text-xl font-bold text-[#F4F0E6]">
+                    {quickViewLoc?.name || quickViewProduct.name}
                   </h3>
-                  <p className="text-xs text-[#6B5A50]">{quickViewProduct.subtitle}</p>
+                  <p className="text-xs text-[#A6B8AE]">
+                    {quickViewLoc?.subtitle || quickViewProduct.subtitle}
+                  </p>
 
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold text-[#9E5334] font-serif-classic">
-                      ${quickViewProduct.price.toFixed(2)}
+                  <div className="flex items-center gap-2" dir="ltr">
+                    <span className="text-2xl font-bold text-[#D4AF37] font-serif-classic tabular-nums">
+                      {formatPrice(quickViewProduct.price)}
                     </span>
                     {quickViewProduct.originalPrice && (
-                      <span className="text-xs text-[#7D6C61] line-through">
-                        ${quickViewProduct.originalPrice.toFixed(2)}
+                      <span className="text-xs text-[#6E8478] line-through tabular-nums">
+                        {formatPrice(quickViewProduct.originalPrice)}
                       </span>
                     )}
                   </div>
 
-                  <p className="text-xs text-[#4B3B31] leading-relaxed">
-                    {quickViewProduct.shortDescription}
+                  <p className="text-xs text-[#C2D1C8] leading-relaxed">
+                    {quickViewLoc?.shortDescription || quickViewProduct.shortDescription}
                   </p>
 
                   <div className="pt-2 flex items-center gap-3">
-                    <div className="flex items-center rounded-lg bg-[#F3ECE3] border border-[#D4C5B4]">
+                    <div className="flex items-center rounded-lg bg-[#06110C] border border-[#1D3B2C]">
                       <button
                         onClick={() =>
                           setQuickViewQuantity(Math.max(1, quickViewQuantity - 1))
                         }
-                        className="px-3 py-1.5 text-xs text-[#4B3B31] hover:text-[#211813] cursor-pointer"
+                        aria-label="Decrease quantity"
+                        className="min-w-[36px] min-h-[36px] px-3 py-1.5 text-xs text-[#A6B8AE] hover:text-[#F4F0E6] cursor-pointer"
                       >
                         -
                       </button>
-                      <span className="px-3 py-1.5 text-xs font-bold text-[#211813]">
+                      <span className="px-3 py-1.5 text-xs font-bold text-[#F4F0E6] tabular-nums">
                         {quickViewQuantity}
                       </span>
                       <button
                         onClick={() => setQuickViewQuantity(quickViewQuantity + 1)}
-                        className="px-3 py-1.5 text-xs text-[#4B3B31] hover:text-[#211813] cursor-pointer"
+                        aria-label="Increase quantity"
+                        className="min-w-[36px] min-h-[36px] px-3 py-1.5 text-xs text-[#A6B8AE] hover:text-[#F4F0E6] cursor-pointer"
                       >
                         +
                       </button>
@@ -517,42 +528,42 @@ export default function App() {
                           setQuickViewProduct(null);
                         }, 800);
                       }}
-                      className="flex-1 py-2.5 rounded-lg bg-[#9E5334] hover:bg-[#824127] text-[#FAF6F0] font-bold text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="flex-1 min-h-[40px] py-2.5 rounded-lg bg-[#D4AF37] hover:bg-[#E2C36B] text-[#06110C] font-bold text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <ShoppingBag className="w-3.5 h-3.5" />
-                      <span>{quickViewAddedNotice ? 'Added to Cart!' : 'Add to Cart'}</span>
+                      <span>{quickViewAddedNotice ? t.quickView.addedNotice : t.quickView.addToCart}</span>
                     </button>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-4 pt-4 border-t border-[#DFD4C7]">
+              <div className="space-y-4 pt-4 border-t border-[#1D3B2C]">
                 <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#9E5334] mb-2">
-                    Key Botanical Actions
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#D4AF37] mb-2">
+                    {t.quickView.keyActives}
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {quickViewProduct.botanicalIngredients.map((b, idx) => (
                       <div
                         key={idx}
-                        className="p-2.5 rounded-lg bg-[#F3ECE3] border border-[#DFD4C7] text-xs space-y-0.5"
+                        className="p-2.5 rounded-lg bg-[#06110C] border border-[#1D3B2C] text-xs space-y-0.5"
                       >
-                        <div className="font-semibold text-[#211813]">{b.commonName}</div>
-                        <div className="text-[10px] text-[#6B5A50] italic">
+                        <div className="font-semibold text-[#F4F0E6]">{b.commonName}</div>
+                        <div className="text-[10px] text-[#A6B8AE] italic" dir="ltr">
                           {b.botanicalName}
                         </div>
-                        <div className="text-[10px] text-[#2B593F] font-medium">{b.action}</div>
+                        <div className="text-[10px] text-emerald-400 font-medium">{b.action}</div>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#9E5334] mb-1">
-                    Suggested Usage
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#D4AF37] mb-1">
+                    {t.quickView.suggestedUse}
                   </h4>
-                  <p className="text-xs text-[#4B3B31] leading-relaxed">
-                    {quickViewProduct.suggestedUse}
+                  <p className="text-xs text-[#C2D1C8] leading-relaxed">
+                    {quickViewLoc?.suggestedUse || quickViewProduct.suggestedUse}
                   </p>
                 </div>
               </div>
@@ -561,52 +572,52 @@ export default function App() {
         </div>
       )}
 
-      {/* Mobile Sticky Quick Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 sm:hidden bg-[#141815]/95 backdrop-blur-lg border-t border-[#2B332D] px-2 py-2 flex items-center justify-around shadow-2xl text-[#D8DDD9]">
+      {/* Mobile Sticky Quick Action Bar (compact height <= 15% mobile viewport) */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 sm:hidden bg-[#06110C]/95 backdrop-blur-lg border-t border-[#1D3B2C] px-2 py-1.5 flex items-center justify-around shadow-2xl text-[#C2D1C8]">
         <a
           href="tel:+93780299299"
-          className="flex flex-col items-center gap-1 text-[10px] hover:text-[#D4AF7A] px-2 py-1"
+          className="flex flex-col items-center gap-0.5 text-[10px] hover:text-[#D4AF37] px-2 py-1 min-h-[42px] justify-center"
         >
-          <Phone className="w-4 h-4 text-[#D4AF7A]" />
-          <span>Call Desk</span>
+          <Phone className="w-4 h-4 text-[#D4AF37]" />
+          <span>{t.mobileBar.callDesk}</span>
         </a>
 
         <button
           onClick={() => handleNavigate('treatments')}
-          className={`flex flex-col items-center gap-1 text-[10px] px-2 py-1 ${
-            currentPage === 'treatments' ? 'text-[#D4AF7A]' : ''
+          className={`flex flex-col items-center gap-0.5 text-[10px] px-2 py-1 min-h-[42px] justify-center ${
+            currentPage === 'treatments' ? 'text-[#D4AF37]' : ''
           }`}
         >
           <Activity className="w-4 h-4" />
-          <span>Treatments</span>
+          <span>{t.mobileBar.treatments}</span>
         </button>
 
         <button
           onClick={() => handleNavigate('booking')}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#D4AF7A] text-[#141815] font-bold text-xs"
+          className="flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-lg bg-[#D4AF37] text-[#06110C] font-bold text-xs whitespace-nowrap"
         >
           <Calendar className="w-3.5 h-3.5" />
-          <span>Book Visit</span>
+          <span>{t.mobileBar.bookVisit}</span>
         </button>
 
         <button
           onClick={() => handleNavigate('shop')}
-          className={`flex flex-col items-center gap-1 text-[10px] px-2 py-1 ${
-            currentPage === 'shop' ? 'text-[#D4AF7A]' : ''
+          className={`flex flex-col items-center gap-0.5 text-[10px] px-2 py-1 min-h-[42px] justify-center ${
+            currentPage === 'shop' ? 'text-[#D4AF37]' : ''
           }`}
         >
-          <ShoppingBag className="w-4 h-4 text-[#D4AF7A]" />
-          <span>Shop</span>
+          <ShoppingBag className="w-4 h-4 text-[#D4AF37]" />
+          <span>{t.mobileBar.shop}</span>
         </button>
 
         <button
           onClick={() => setIsCartOpen(true)}
-          className="relative flex flex-col items-center gap-1 text-[10px] hover:text-[#D4AF7A] px-2 py-1"
+          className="relative flex flex-col items-center gap-0.5 text-[10px] hover:text-[#D4AF37] px-2 py-1 min-h-[42px] justify-center"
         >
           <ShoppingBag className="w-4 h-4 text-emerald-400" />
-          <span>Cart</span>
+          <span>{t.mobileBar.cart}</span>
           {totalCartCount > 0 && (
-            <span className="absolute -top-1 right-1 w-4 h-4 rounded-full bg-[#D4AF7A] text-[#141815] text-[9px] font-bold flex items-center justify-center">
+            <span className="absolute top-0 end-1 w-4 h-4 rounded-full bg-[#D4AF37] text-[#06110C] text-[9px] font-bold flex items-center justify-center tabular-nums">
               {totalCartCount}
             </span>
           )}

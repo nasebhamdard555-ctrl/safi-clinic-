@@ -27,6 +27,7 @@ import { ReceivablesPanel } from './ReceivablesPanel';
 import { PayablesPanel } from './PayablesPanel';
 import { BankingReconcilePanel } from './BankingReconcilePanel';
 import { FinancialReportsPanel } from './FinancialReportsPanel';
+import { useCurrency } from '../../context/CurrencyContext';
 
 interface Accounting2009WorkspaceProps {
   onLedgerChanged?: () => void;
@@ -52,6 +53,7 @@ const EMPTY_AGING: AgingBucketsSummary = {
 export const Accounting2009Workspace: React.FC<Accounting2009WorkspaceProps> = ({
   onLedgerChanged,
 }) => {
+  const { formatPrice } = useCurrency();
   const [subView, setSubView] = useState<MoaSubView>('coa');
   const [loading, setLoading] = useState(true);
 
@@ -162,7 +164,7 @@ export const Accounting2009Workspace: React.FC<Accounting2009WorkspaceProps> = (
             Total Assets
           </div>
           <div className="text-2xl font-bold font-mono tabular-nums text-[#f5f3ec] mt-1">
-            ${balanceSheet.totalAssets.toFixed(2)}
+            <span dir="ltr">{formatPrice(balanceSheet.totalAssets)}</span>
           </div>
           <div className="text-[11px] text-[#a6b6ad] mt-0.5">
             Cash + Bank + A/R + Inventory
@@ -174,7 +176,7 @@ export const Accounting2009Workspace: React.FC<Accounting2009WorkspaceProps> = (
             Total Liabilities
           </div>
           <div className="text-2xl font-bold font-mono tabular-nums text-amber-300 mt-1">
-            ${balanceSheet.totalLiabilities.toFixed(2)}
+            <span dir="ltr">{formatPrice(balanceSheet.totalLiabilities)}</span>
           </div>
           <div className="text-[11px] text-[#a6b6ad] mt-0.5">
             Accounts Payable + Sales Tax
@@ -186,7 +188,7 @@ export const Accounting2009Workspace: React.FC<Accounting2009WorkspaceProps> = (
             Net Owner&apos;s Equity
           </div>
           <div className="text-2xl font-bold font-mono tabular-nums text-[#d4af37] mt-1">
-            ${balanceSheet.totalEquity.toFixed(2)}
+            <span dir="ltr">{formatPrice(balanceSheet.totalEquity)}</span>
           </div>
           <div className="text-[11px] text-[#a6b6ad] mt-0.5">
             Capital + Current Net Income
@@ -198,7 +200,7 @@ export const Accounting2009Workspace: React.FC<Accounting2009WorkspaceProps> = (
             GL Net Income
           </div>
           <div className="text-2xl font-bold font-mono tabular-nums text-emerald-400 mt-1">
-            ${profitAndLoss.netIncome.toFixed(2)}
+            <span dir="ltr">{formatPrice(profitAndLoss.netIncome)}</span>
           </div>
           <div className="text-[11px] text-emerald-300/80 mt-0.5 font-mono">
             {trialBalance.isBalanced ? 'Trial Balance Verified' : 'Check Trial Balance'}
