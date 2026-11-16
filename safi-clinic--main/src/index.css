@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+:root {
+  --bg-obsidian: #06110C;
+  --bg-emerald: #0B1D14;
+  --bg-forest-card: #0F261B;
+  --ink-ivory: #F4F0E6;
+  --ink-sage: #A6B8AE;
+  --accent-gold: #D4AF37;
+  --accent-gold-soft: #C5A059;
+  --hairline-emerald: rgba(29, 59, 44, 0.9);
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--bg-obsidian);
+  color: var(--ink-ivory);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: var(--bg-obsidian);
+  color: var(--ink-ivory);
+  overflow-x: hidden;
+}
+
+/* Display & Editorial Typography */
+.font-serif-classic {
+  font-family: 'Cinzel', Georgia, serif;
+}
+
+.font-serif-editorial,
+.font-editorial {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.font-mono-code {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Native RTL Typography for Pashto (ps) & Dari (fa) */
+[dir='rtl'] html,
+html[dir='rtl'],
+[dir='rtl'] body {
+  font-family: 'Vazirmatn', 'Noto Naskh Arabic', 'Plus Jakarta Sans', sans-serif;
+}
+
+[dir='rtl'] .font-serif-classic,
+[dir='rtl'] .font-serif-editorial,
+[dir='rtl'] .font-editorial {
+  font-family: 'Noto Naskh Arabic', 'Vazirmatn', Georgia, serif;
+  letter-spacing: 0 !important;
+  font-style: normal;
+}
+
+[dir='rtl'] .uppercase {
+  letter-spacing: 0;
+}
+
+/* Subtle Grain Texture for Depth on Dark Emerald Canvas */
+.bg-grain {
+  background-image: radial-gradient(rgba(212, 175, 55, 0.04) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Refined Gold Shimmer Text */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #F5E4B8 0%, #D4AF37 52%, #AA8222 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Editorial Hairline Row Transitions */
+.editorial-row {
+  border-bottom: 1px solid var(--hairline-emerald);
+  transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.editorial-row:hover {
+  background-color: rgba(19, 43, 32, 0.55);
+}
+
+.arrow-glide {
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.group:hover .arrow-glide {
+  transform: translateX(4px);
+}
+
+[dir='rtl'] .group:hover .arrow-glide {
+  transform: translateX(-4px);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #06110C;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1A3628;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #C5A059;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
