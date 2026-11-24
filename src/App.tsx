@@ -28,6 +28,8 @@ import { CartTotals, calculateCartTotals } from './utils/clinicLogic';
 import { BotanicalImage } from './components/BotanicalImage';
 import { useLanguage } from './context/LanguageContext';
 import { useCurrency } from './context/CurrencyContext';
+import { useStaffPortal } from './context/StaffPortalContext';
+import { SastechLoginGate, SastechSessionBanner } from './components/SastechLoginGate';
 
 export type PageType =
   | 'home'
@@ -297,11 +299,22 @@ export default function App() {
 
   const quickViewLoc = quickViewProduct ? t.productsMap[quickViewProduct.id] : undefined;
 
+  const { currentStaff } = useStaffPortal();
+
+  if (!currentStaff) {
+    return <SastechLoginGate />;
+  }
+
   return (
     <div
       dir={dir}
       className={`min-h-screen ${theme.bg} ${theme.text} relative font-sans transition-colors duration-500 ease-in-out ${theme.textSelection} overflow-x-clip pb-20 sm:pb-0`}
     >
+      {/* Sastech ERP session strip */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <SastechSessionBanner onNavigate={handleNavigate} />
+      </div>
+
       {/* Navigation Header */}
       <Navbar
         activeSection={currentPage}

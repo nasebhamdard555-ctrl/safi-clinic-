@@ -17,7 +17,11 @@ import {
   ClipboardCheck,
   ArrowRight,
 } from 'lucide-react';
-import { useStaffPortal, StaffRole } from '../context/StaffPortalContext';
+import {
+  useStaffPortal,
+  StaffRole,
+  PatientClinicalRouting,
+} from '../context/StaffPortalContext';
 
 export const SastechLoginGate: React.FC = () => {
   const { loginStaff, enterCustomerDemo } = useStaffPortal();
@@ -468,5 +472,289 @@ export const StaffAccessManagerPanel: React.FC = () => {
   );
 };
 
+interface RxDraft {
+  medicines: string;
+  notes: string;
+}
+
+const parseMedicines = (raw: string): string[] =>
+  raw
+    .split(/[,\n]/)
+    .map((m) => m.trim())
+    .filter(Boolean);
+
+const defaultDraft = (item: PatientClinicalRouting): RxDraft => ({
+  medicines: item.prescribedMedicines.join(', '),
+  notes: '',
+});
+
 export const DoctorConsultationQueuePanel: React.FC = () => {
-  const { routingQueue, currentStaff, doctorApprovePrescription }
+  const { routingQueue, currentStaff, doctorApprovePrescription } = useStaffPortal();
+  const [drafts, setDrafts] = useState<Record<string, RxDraft>>({});
+
+  const canApprove = currentStaff?.role === 'doctor' || currentStaff?.role === 'admin';
+  const waiting = routingQueue.filter((r) => r.status === 'Waiting for Doctor');
+  const reviewed = routingQueue.filter((r) => r.status !== 'Waiting for Doctor');
+
+  const updateDraft = (item: PatientClinicalRouting, patch: Partial<RxDraft>) => {
+    setDrafts((prev) => ({
+      ...prev,
+      [item.id]: { ...(prev[item.id] ?? defaultDraft(item)), ...patch },
+    }));
+  };
+
+  const handleApprove = (item: PatientClinicalRouting) => {
+    if (!canApprove || !currentStaff) return;
+    const draft = drafts[item.id] ?? defaultDraft(item);
+    const medicines = parseMedicines(draft.medicines);
+    if (medicines.length === 0) return;
+    doctorApprovePrescription(
+      item.id,
+      medicines,
+      draft.notes.trim() || 'Approved - no additional dosage notes.',
+      currentStaff.fullName
+    );
+    setDrafts((prev) => {
+      const next = { ...prev };
+      delete next[item.id];
+      return next;
+    });
+  };
+
+  return (
+    <div className="clinic-erp rounded-lg overflow-hidden border-2 border-[#15803d]">
+      <div className="clinic-erp-header">
+        <div className="flex items-center gap-2">
+          <ClipboardCheck className="w-4 h-4 text-[#facc15]" />
+          <span className="font-bold uppercase tracking-wider">
+            Doctor Consultation Queue &amp; Prescription Approval
+          </span>
+        </div>
+        <span className="text-[11px] font-mono">
+          Waiting: {waiting.length} / Reviewed: {reviewed.length}
+        </span>
+      </div>
+
+      <div className="p-4 bg-[#eef3ee] text-[#111827] space-y-4">
+        {!canApprove && (
+          <div className="p-2.5 rounded bg-amber-100 border border-amber-400 text-amber-950 text-xs font-bold flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-700 shrink-0" />
+            <span>View only. A Doctor or Admin must approve prescriptions.</span>
+          </div>
+        )}
+
+        {waiting.length === 0 ? (
+          <div className="p-3 bg-white border border-[#86efac] rounded text-xs font-bold text-[#14532d] flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>No patients waiting for a doctor. Patients routed from reception appear here.</span>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {waiting.map((item) => {
+              const draft = drafts[item.id] ?? defaultDraft(item);
+              const hasMedicines = parseMedicines(draft.medicines).length > 0;
+              return (
+                <div
+                  key={item.id}
+                  className="p-3 bg-white border border-[#86efac] rounded space-y-3"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono font-bold">{item.id}</span>
+                      <span className="font-bold text-sm">{item.patientName}</span>
+                      <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-950 border border-amber-400 text-[10px] font-bold">
+                        WAITING FOR DOCTOR
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-mono text-gray-600">
+                      Registered {item.registeredAt}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1 text-[11px]">
+                    <div>
+                      <span className="font-bold text-[#14532d]">QR Token: </span>
+                      <span className="font-mono">{item.qrToken}</span>
+                    </div>
+                    <div>
+                      <span className="font-bold text-[#14532d]">Phone: </span>
+                      <span className="font-mono">{item.phone || '-'}</span>
+                    </div>
+                    <div>
+                      <span className="font-bold text-[#14532d]">Age / Gender: </span>
+                      <span>
+                        {item.age || '-'} / {item.gender || '-'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-bold text-[#14532d]">Mizaj: </span>
+                      <span>{item.mizaj || '-'}</span>
+                    </div>
+                    <div className="col-span-2 lg:col-span-4">
+                      <span className="font-bold text-[#14532d]">Symptoms: </span>
+                      <span>{item.symptoms || '-'}</span>
+                    </div>
+                    <div className="col-span-2 lg:col-span-4">
+                      <span className="font-bold text-[#14532d]">Assigned Doctor: </span>
+                      <span>{item.assignedDoctor || '-'}</span>
+                    </div>
+                  </div>
+
+                  {canApprove && (
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 items-end">
+                      <label className="block lg:col-span-5">
+                        <span className="block text-[11px] font-bold text-[#14532d] mb-0.5">
+                          Medicines (comma separated) *
+                        </span>
+                        <input
+                          type="text"
+                          value={draft.medicines}
+                          onChange={(e) => updateDraft(item, { medicines: e.target.value })}
+                          placeholder="e.g. Black Seed & Honey Elixir, Saffron Tea"
+                          className="w-full px-2.5 py-1.5 border border-gray-400 rounded text-xs bg-white text-black"
+                        />
+                      </label>
+                      <label className="block lg:col-span-5">
+                        <span className="block text-[11px] font-bold text-[#14532d] mb-0.5">
+                          Dosage &amp; Notes
+                        </span>
+                        <input
+                          type="text"
+                          value={draft.notes}
+                          onChange={(e) => updateDraft(item, { notes: e.target.value })}
+                          placeholder="e.g. 5ml twice daily after meals"
+                          className="w-full px-2.5 py-1.5 border border-gray-400 rounded text-xs bg-white text-black"
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        disabled={!hasMedicines}
+                        onClick={() => handleApprove(item)}
+                        className="lg:col-span-2 py-1.5 px-3 bg-[#14532d] hover:bg-[#166534] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Stethoscope className="w-3.5 h-3.5 text-[#facc15]" />
+                        <span>Approve &amp; Sign</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {reviewed.length > 0 && (
+          <div className="overflow-x-auto border border-[#86efac] bg-white">
+            <table className="clinic-erp-grid">
+              <thead>
+                <tr>
+                  <th>Queue ID</th>
+                  <th>Patient</th>
+                  <th>Medicines</th>
+                  <th>Dosage &amp; Notes</th>
+                  <th>Approved By</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reviewed.map((item) => (
+                  <tr key={item.id}>
+                    <td className="font-mono font-bold">{item.id}</td>
+                    <td className="font-bold">{item.patientName}</td>
+                    <td>{item.prescribedMedicines.join(', ') || '-'}</td>
+                    <td>{item.prescriptionNotes || '-'}</td>
+                    <td>
+                      {item.approvedBy ? `${item.approvedBy} (${item.approvedAt})` : '-'}
+                    </td>
+                    <td>
+                      <span
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${
+                          item.status === 'Dispensed'
+                            ? 'bg-sky-100 text-sky-900 border-sky-400'
+                            : 'bg-emerald-100 text-emerald-900 border-emerald-400'
+                        }`}
+                      >
+                        {item.status === 'Dispensed' ? 'DISPENSED' : 'APPROVED'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div className="clinic-erp-shortcut-bar">
+        <span>
+          <span className="clinic-erp-key">STEP 2</span> Doctor / Admin Reviews &amp; Signs Prescription
+        </span>
+        <span>
+          <span className="clinic-erp-key">GATE</span> Medicine Sale Unlocks After Approval
+        </span>
+      </div>
+    </div>
+  );
+};
+
+interface SastechSessionBannerProps {
+  onNavigate: (pageId: string, serviceId?: string) => void;
+}
+
+export const SastechSessionBanner: React.FC<SastechSessionBannerProps> = ({ onNavigate }) => {
+  const { currentStaff, isDemoMode, logoutStaff } = useStaffPortal();
+  if (!currentStaff) return null;
+
+  const roleLabel =
+    currentStaff.role === 'pharmacist'
+      ? 'Medicine Seller'
+      : currentStaff.role === 'doctor'
+      ? 'Doctor'
+      : 'Admin';
+
+  return (
+    <div className="h-8 px-3 flex items-center justify-between gap-2 bg-[#14532d] border-b border-[#052e16] text-[11px] text-emerald-50 font-mono whitespace-nowrap overflow-hidden">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="px-1.5 py-0.5 rounded bg-[#facc15] text-[#052e16] font-extrabold tracking-wider shrink-0">
+          SASTECH ERP
+        </span>
+        <span className="truncate">
+          <span className="font-bold text-white">{currentStaff.fullName}</span>
+          <span className="hidden sm:inline"> · {roleLabel}</span>
+        </span>
+        {isDemoMode && (
+          <span className="hidden sm:inline px-1.5 py-0.5 rounded bg-black/30 border border-[#facc15]/60 text-[#facc15] font-bold shrink-0">
+            DEMO MODE
+          </span>
+        )}
+      </div>
+
+      <div className="flex items-center gap-1.5 shrink-0">
+        {currentStaff.role === 'admin' && (
+          <button
+            type="button"
+            onClick={() => onNavigate('admin')}
+            className="px-2 py-0.5 rounded bg-black/30 hover:bg-black/50 border border-emerald-400/40 font-semibold cursor-pointer"
+          >
+            Ledger
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => onNavigate('pos-triage')}
+          className="px-2 py-0.5 rounded bg-black/30 hover:bg-black/50 border border-emerald-400/40 font-semibold cursor-pointer"
+        >
+          Workflow
+        </button>
+        <button
+          type="button"
+          onClick={() => logoutStaff()}
+          className="px-2 py-0.5 rounded bg-[#facc15] hover:bg-[#fde047] text-[#052e16] font-extrabold inline-flex items-center gap-1 cursor-pointer"
+        >
+          <LogOut className="w-3 h-3" />
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </div>
+  );
+};
