@@ -14,6 +14,7 @@ import { AccountingDashboard } from '../components/AccountingDashboard';
 import { InventoryTracker } from '../components/InventoryTracker';
 import { SocialSettingsPanel } from '../components/SocialSettingsPanel';
 import { Accounting2009Workspace } from '../components/moa2009/Accounting2009Workspace';
+import { MargErpClinicWorkspace } from '../components/moa2009/MargErpClinicWorkspace';
 import {
   StaffAccessManagerPanel,
   DoctorConsultationQueuePanel,
@@ -26,14 +27,14 @@ interface AdminDashboardPageProps {
   onNavigateToPos: () => void;
 }
 
-type AdminTab = 'accounting' | 'moa2009' | 'inventory' | 'staff-access' | 'doctor-desk' | 'settings';
+type AdminTab = 'marg-erp' | 'accounting' | 'moa2009' | 'inventory' | 'staff-access' | 'doctor-desk' | 'settings';
 
 export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   onNavigateToPos,
 }) => {
   const { t } = useLanguage();
   const { currentStaff, routingQueue } = useStaffPortal();
-  const [activeTab, setActiveTab] = useState<AdminTab>('accounting');
+  const [activeTab, setActiveTab] = useState<AdminTab>('marg-erp');
   const [analyticsRefreshTick, setAnalyticsRefreshTick] = useState(0);
   const { lowStockItems, settings } = useClinicConfig();
 
@@ -43,7 +44,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'F2') {
+      if (e.key === 'F1') {
+        e.preventDefault();
+        setActiveTab('marg-erp');
+      } else if (e.key === 'F2') {
         e.preventDefault();
         setActiveTab('accounting');
       } else if (e.key === 'F3') {
@@ -104,6 +108,21 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             aria-label="Admin Dashboard Sections"
             className="flex flex-wrap items-center gap-1 p-1.5 bg-[#dcfce7] border-b border-[#86efac]"
           >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'marg-erp'}
+              onClick={() => setActiveTab('marg-erp')}
+              className={`px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 border cursor-pointer ${
+                activeTab === 'marg-erp'
+                  ? 'bg-[#14532d] border-[#052e16] text-[#facc15]'
+                  : 'bg-white border-[#86efac] text-[#14532d] hover:bg-emerald-50'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5 text-[#facc15]" />
+              <span>[F1] Marg ERP 9+ (A1+) Console</span>
+            </button>
+
             <button
               type="button"
               role="tab"
@@ -204,6 +223,12 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           </div>
 
           <div className="p-3 sm:p-4 bg-[#06140d] text-[#f5f3ec]">
+            {activeTab === 'marg-erp' && (
+              <MargErpClinicWorkspace
+                onLedgerChanged={triggerAnalyticsRefresh}
+                onNavigateToPos={onNavigateToPos}
+              />
+            )}
             {activeTab === 'accounting' && (
               <AccountingDashboard refreshTrigger={analyticsRefreshTick} />
             )}

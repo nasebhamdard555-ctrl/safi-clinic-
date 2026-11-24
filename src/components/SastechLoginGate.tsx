@@ -28,6 +28,7 @@ export const SastechLoginGate: React.FC = () => {
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('123');
   const [error, setError] = useState<string | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState('01');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,203 +46,283 @@ export const SastechLoginGate: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#07150e] text-[#f4f0e6] flex flex-col justify-between font-sans selection:bg-[#15803d] selection:text-white">
-      <div className="bg-[#14532d] border-b-2 border-[#052e16] px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+    <div className="min-h-screen bg-[#07150e] text-[#f4f0e6] flex flex-col justify-between font-mono selection:bg-[#15803d] selection:text-white">
+      {/* Top Marg ERP 9+ Title Bar */}
+      <div className="bg-[#14532d] border-b-2 border-[#052e16] px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs font-sans">
         <div className="flex items-center gap-2.5">
-          <span className="px-2 py-0.5 rounded bg-[#facc15] text-[#052e16] font-extrabold tracking-wider uppercase text-[11px]">
-            SASTECH ERP
+          <span className="px-2 py-0.5 rounded-sm bg-[#facc15] text-[#052e16] font-extrabold tracking-wider uppercase text-[11px] font-mono">
+            MARG ERP A1+
           </span>
           <span className="font-bold text-white tracking-wide">
-            Sastech Clinic Management &amp; Apothecary Ledger Suite
+            MARG ERP 9+ · SAFI CLINIC &amp; APOTHECARY MANAGEMENT SYSTEM (KABUL AFGHANISTAN)
           </span>
         </div>
-        <div className="text-[11px] text-emerald-100 font-mono">
-          Clinic Edition · No Hospital Modules · v2026.4
+        <div className="text-[11px] text-[#86efac] font-mono">
+          Outpatient Clinic Staff Edition · No Hospital Wards · FY: 2026-2027
         </div>
       </div>
 
       <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
-        <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 rounded-xl overflow-hidden border-2 border-[#166534] bg-[#0b1f15] shadow-2xl">
-          <div className="lg:col-span-5 bg-gradient-to-b from-[#14532d] to-[#0a2e1a] p-6 sm:p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-[#166534]">
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-black/30 border border-[#facc15]/50 text-[#facc15] text-[11px] font-bold uppercase tracking-wider">
-                <Building2 className="w-3.5 h-3.5" />
-                <span>Presented by Sastech</span>
+        <div className="w-full max-w-4xl rounded border-2 border-[#166534] bg-[#eef3ee] text-[#111827] shadow-2xl overflow-hidden font-mono text-xs">
+          {/* Header Bar */}
+          <div className="bg-gradient-to-r from-[#14532d] to-[#166534] text-white px-3 py-1.5 flex items-center justify-between font-bold text-xs font-sans">
+            <div className="flex items-center gap-2">
+              <span className="text-[#facc15] font-black">MARG ERP 9+</span>
+              <span>· COMPANY LOGIN &amp; OPERATOR AUTHENTICATION</span>
+            </div>
+            <span className="text-[10px] text-[#86efac] font-mono">
+              OFFICE: #C93 GUL BAHAR CENTER KABUL
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-[#9ca3af]">
+            {/* Left Column: Company Directory & Demo Mode Launchers */}
+            <div className="lg:col-span-6 p-4 sm:p-5 bg-[#f8faf8] space-y-4 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="border border-[#166534] bg-white rounded p-3 space-y-2">
+                  <div className="font-bold text-xs text-[#14532d] uppercase flex items-center justify-between border-b border-gray-200 pb-1">
+                    <span>SELECT COMPANY / CLINIC</span>
+                    <span className="text-[10px] text-gray-500 font-mono">F1=Directory</span>
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <label
+                      onClick={() => setSelectedCompany('01')}
+                      className={`p-2 border block cursor-pointer transition ${
+                        selectedCompany === '01'
+                          ? 'border-[#14532d] bg-[#dcfce7] font-bold text-[#14532d]'
+                          : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                      }`}
+                    >
+                      <div className="flex justify-between items-center">
+                        <span>01  SAFI NATURAL CARE CLINIC</span>
+                        <span className="text-[10px] font-mono">2026-2027</span>
+                      </div>
+                      <div className="text-[10px] text-gray-500 font-normal">
+                        C93 Gul Bahar Center Kabul · Outpatient &amp; Dispensary
+                      </div>
+                    </label>
+
+                    <label
+                      onClick={() => setSelectedCompany('02')}
+                      className={`p-2 border block cursor-pointer transition ${
+                        selectedCompany === '02'
+                          ? 'border-[#14532d] bg-[#dcfce7] font-bold text-[#14532d]'
+                          : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                      }`}
+                    >
+                      <div className="flex justify-between items-center">
+                        <span>02  AYAN MOBILE &amp; APOTHECARY</span>
+                        <span className="text-[10px] font-mono">2026-2027</span>
+                      </div>
+                      <div className="text-[10px] text-gray-500 font-normal">
+                        Botanical Raw Material &amp; Retail Counter
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Marg ERP Style Notice */}
+                <div className="p-2.5 bg-emerald-50 border border-emerald-300 rounded text-[11px] text-emerald-950 font-sans space-y-1">
+                  <div className="font-bold text-[#14532d] flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                    <span>Strict Outpatient Clinic Management Edition</span>
+                  </div>
+                  <p className="text-[10px] text-gray-600">
+                    All hospital inpatient modules, surgery suites, and bed wards are excluded.
+                    Fully streamlined for outpatient doctor consultations, prescription approvals,
+                    dispensary POS, and double-entry Marg accounting.
+                  </p>
+                </div>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
-                Clinic Management &amp; Pharmacy ERP
-              </h1>
-
-              <p className="text-xs text-emerald-100/90 leading-relaxed">
-                High-density outpatient clinic control, reception-to-doctor patient routing,
-                doctor-approved medicine dispensing, stock valuation, and double-entry clinic accounting.
-              </p>
-
-              <div className="space-y-2 pt-2 text-xs text-emerald-50">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#facc15] shrink-0" />
-                  <span>Admin-Controlled Staff Access (Doctors &amp; Dispensary)</span>
+              {/* One-Click Demo Mode Buttons (Marg ERP Retro Styled) */}
+              <div className="pt-3 border-t border-gray-300 space-y-2">
+                <div className="text-[11px] font-bold text-[#14532d] uppercase tracking-wide">
+                  One-Click Customer Presentation &amp; Demo Launch:
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#facc15] shrink-0" />
-                  <span>Direct Reception → Doctor Consultation Routing</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#facc15] shrink-0" />
-                  <span>Doctor/Admin Approval Gate Before Medicine Sale</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => enterCustomerDemo('admin')}
+                    className="p-2 bg-[#14532d] hover:bg-[#166534] text-white font-bold text-xs uppercase rounded flex items-center justify-between cursor-pointer shadow"
+                  >
+                    <span>[ DEMO: ADMIN ]</span>
+                    <PlayCircle className="w-3.5 h-3.5 text-[#facc15]" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => enterCustomerDemo('doctor')}
+                    className="p-2 bg-[#065f46] hover:bg-[#047857] text-white font-bold text-xs uppercase rounded flex items-center justify-between cursor-pointer shadow"
+                  >
+                    <span>[ DEMO: DOCTOR ]</span>
+                    <Stethoscope className="w-3.5 h-3.5 text-[#facc15]" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => enterCustomerDemo('pharmacist')}
+                    className="p-2 bg-[#075985] hover:bg-[#0284c7] text-white font-bold text-xs uppercase rounded flex items-center justify-between cursor-pointer shadow"
+                  >
+                    <span>[ DEMO: DISPENSARY ]</span>
+                    <Pill className="w-3.5 h-3.5 text-[#facc15]" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => enterCustomerDemo('receptionist')}
+                    className="p-2 bg-[#854d0e] hover:bg-[#a16207] text-white font-bold text-xs uppercase rounded flex items-center justify-between cursor-pointer shadow"
+                  >
+                    <span>[ DEMO: RECEPTION ]</span>
+                    <ClipboardCheck className="w-3.5 h-3.5 text-[#facc15]" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => enterCustomerDemo('accountant')}
+                    className="sm:col-span-2 p-2 bg-[#1f2937] hover:bg-[#374151] text-white font-bold text-xs uppercase rounded flex items-center justify-between cursor-pointer shadow"
+                  >
+                    <span>[ DEMO: CLINIC ACCOUNTANT / MARG LEDGER ]</span>
+                    <PlayCircle className="w-3.5 h-3.5 text-[#facc15]" />
+                  </button>
                 </div>
               </div>
             </div>
 
-            <div className="pt-6 mt-6 border-t border-emerald-700/60 space-y-3">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-[#facc15]">
-                Client Presentation Mode
+            {/* Right Column: Operator Credentials Login Form */}
+            <div className="lg:col-span-6 p-4 sm:p-5 bg-white space-y-4 flex flex-col justify-between">
+              <div>
+                <div className="border-b border-gray-300 pb-2">
+                  <span className="text-[10px] font-bold text-[#14532d] uppercase tracking-wider block">
+                    Marg ERP 9+ Enterprise Terminal
+                  </span>
+                  <h2 className="text-base font-bold text-gray-900 mt-0.5">
+                    Operator ID &amp; Password Sign In
+                  </h2>
+                  <p className="text-[11px] text-gray-600 font-sans mt-0.5">
+                    Enter your staff credentials or use one of the quick demo buttons on the left.
+                  </p>
+                </div>
+
+                {error && (
+                  <div className="p-2.5 rounded bg-rose-100 border border-rose-400 text-rose-900 text-xs font-bold flex items-center gap-2 mt-3">
+                    <AlertCircle className="w-4 h-4 text-rose-700 shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-3 mt-4 text-xs">
+                  <label className="block space-y-1">
+                    <span className="font-bold text-[#14532d] uppercase text-[11px]">
+                      User Name / Staff ID *
+                    </span>
+                    <div className="relative">
+                      <User className="w-4 h-4 text-gray-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        required
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="e.g. admin, doctor, pharmacy, reception"
+                        className="w-full pl-8 pr-3 py-2 bg-white border border-gray-400 focus:border-[#14532d] text-gray-900 font-mono outline-none"
+                      />
+                    </div>
+                  </label>
+
+                  <label className="block space-y-1">
+                    <span className="font-bold text-[#14532d] uppercase text-[11px]">
+                      Password *
+                    </span>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-gray-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="password"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full pl-8 pr-3 py-2 bg-white border border-gray-400 focus:border-[#14532d] text-gray-900 font-mono outline-none"
+                      />
+                    </div>
+                  </label>
+
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 bg-[#14532d] hover:bg-[#166534] text-white font-bold text-xs uppercase tracking-wider rounded flex items-center justify-center gap-2 transition cursor-pointer shadow"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-[#facc15]" />
+                    <span>Enter Marg ERP System</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </form>
               </div>
-              <button
-                type="button"
-                onClick={() => enterCustomerDemo('admin')}
-                className="w-full py-3 px-4 rounded-lg bg-[#facc15] hover:bg-[#fde047] text-[#052e16] font-extrabold text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
-              >
-                <PlayCircle className="w-4 h-4" />
-                <span>Launch Customer Demo</span>
-              </button>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => enterCustomerDemo('doctor')}
-                  className="py-1.5 px-2.5 rounded bg-black/30 hover:bg-black/50 border border-emerald-400/40 text-[11px] text-emerald-100 font-semibold cursor-pointer"
-                >
-                  Demo as Doctor
-                </button>
-                <button
-                  type="button"
-                  onClick={() => enterCustomerDemo('pharmacist')}
-                  className="py-1.5 px-2.5 rounded bg-black/30 hover:bg-black/50 border border-emerald-400/40 text-[11px] text-emerald-100 font-semibold cursor-pointer"
-                >
-                  Demo as Medicine Seller
-                </button>
+
+              {/* Quick Fill Credentials Grid */}
+              <div className="pt-3 border-t border-gray-300 space-y-2">
+                <div className="text-[10px] font-bold text-gray-600 uppercase">
+                  Default Role Credentials (Password: 123):
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[10px]">
+                  <button
+                    type="button"
+                    onClick={() => quickFill('admin', '123')}
+                    className="p-1.5 bg-gray-100 hover:bg-[#dcfce7] border border-gray-300 text-left rounded cursor-pointer"
+                  >
+                    <div className="font-bold text-[#14532d]">Admin</div>
+                    <div className="font-mono text-gray-500">ID: admin</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => quickFill('doctor', '123')}
+                    className="p-1.5 bg-gray-100 hover:bg-[#dcfce7] border border-gray-300 text-left rounded cursor-pointer"
+                  >
+                    <div className="font-bold text-emerald-800">Doctor</div>
+                    <div className="font-mono text-gray-500">ID: doctor</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => quickFill('pharmacy', '123')}
+                    className="p-1.5 bg-gray-100 hover:bg-[#dcfce7] border border-gray-300 text-left rounded cursor-pointer"
+                  >
+                    <div className="font-bold text-sky-800">Dispensary</div>
+                    <div className="font-mono text-gray-500">ID: pharmacy</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => quickFill('reception', '123')}
+                    className="p-1.5 bg-gray-100 hover:bg-[#dcfce7] border border-gray-300 text-left rounded cursor-pointer"
+                  >
+                    <div className="font-bold text-amber-800">Reception</div>
+                    <div className="font-mono text-gray-500">ID: reception</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => quickFill('accountant', '123')}
+                    className="p-1.5 bg-gray-100 hover:bg-[#dcfce7] border border-gray-300 text-left rounded cursor-pointer"
+                  >
+                    <div className="font-bold text-purple-800">Accountant</div>
+                    <div className="font-mono text-gray-500">ID: accountant</div>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-center space-y-5 bg-[#091811]">
-            <div>
-              <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-400 block">
-                Authorized Clinic Terminal
-              </span>
-              <h2 className="text-xl font-bold text-white mt-0.5">
-                Staff &amp; Administrator Sign In
-              </h2>
-              <p className="text-xs text-[#9eb3a8] mt-1">
-                Enter credentials assigned by your Clinic Administrator.
-              </p>
-            </div>
-
-            {error && (
-              <div
-                role="alert"
-                className="p-3 rounded-lg bg-rose-950/60 border border-rose-500/70 text-rose-200 text-xs flex items-center gap-2"
-              >
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              <label className="block space-y-1.5">
-                <span className="font-bold text-emerald-100 uppercase tracking-wider text-[11px]">
-                  Login ID / Username
-                </span>
-                <div className="relative">
-                  <User className="w-4 h-4 text-emerald-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    required
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="e.g. admin, doctor, or pharmacy"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-[#05100b] border border-[#1d4632] focus:border-[#facc15] text-white font-mono focus:outline-none"
-                  />
-                </div>
-              </label>
-
-              <label className="block space-y-1.5">
-                <span className="font-bold text-emerald-100 uppercase tracking-wider text-[11px]">
-                  Password
-                </span>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-emerald-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-[#05100b] border border-[#1d4632] focus:border-[#facc15] text-white font-mono focus:outline-none"
-                  />
-                </div>
-              </label>
-
-              <button
-                type="submit"
-                className="w-full py-3 rounded-lg bg-[#15803d] hover:bg-[#16a34a] text-white font-bold text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2 transition-colors cursor-pointer"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>Sign In to Clinic System</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
-
-            <div className="pt-3 border-t border-[#163626] space-y-2">
-              <div className="text-[11px] text-[#8da396] font-mono">
-                Quick-Fill Default Role Credentials (Password: 123):
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-[11px]">
-                <button
-                  type="button"
-                  onClick={() => quickFill('admin', '123')}
-                  className="p-2 rounded bg-[#0e261b] hover:bg-[#143726] border border-[#1f4d37] text-left cursor-pointer"
-                >
-                  <div className="font-bold text-[#facc15] flex items-center gap-1">
-                    <ShieldCheck className="w-3 h-3" />
-                    <span>Admin</span>
-                  </div>
-                  <div className="font-mono text-[10px] text-emerald-200">ID: admin</div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => quickFill('doctor', '123')}
-                  className="p-2 rounded bg-[#0e261b] hover:bg-[#143726] border border-[#1f4d37] text-left cursor-pointer"
-                >
-                  <div className="font-bold text-emerald-300 flex items-center gap-1">
-                    <Stethoscope className="w-3 h-3" />
-                    <span>Doctor</span>
-                  </div>
-                  <div className="font-mono text-[10px] text-emerald-200">ID: doctor</div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => quickFill('pharmacy', '123')}
-                  className="p-2 rounded bg-[#0e261b] hover:bg-[#143726] border border-[#1f4d37] text-left cursor-pointer"
-                >
-                  <div className="font-bold text-sky-300 flex items-center gap-1">
-                    <Pill className="w-3 h-3" />
-                    <span>Dispensary</span>
-                  </div>
-                  <div className="font-mono text-[10px] text-emerald-200">ID: pharmacy</div>
-                </button>
-              </div>
-            </div>
+          {/* Bottom Bar matching Video */}
+          <div className="bg-[#14532d] text-white px-3 py-1 text-[10px] font-mono flex flex-wrap items-center justify-between border-t border-[#052e16]">
+            <span>M-SOFT TECHNOLOGIES · Marg ERP A1+ Silver Edition</span>
+            <span>Help Line: +93 774 291 300 · Kabul Afghanistan</span>
           </div>
         </div>
       </div>
 
       <div className="bg-[#05100b] border-t border-[#163626] px-4 py-2 text-[11px] text-[#8da396] flex flex-wrap items-center justify-between gap-2 font-mono">
-        <span>Powered by Sastech IT Solutions · Outpatient Clinic &amp; Apothecary ERP</span>
-        <span>All Hospital Inpatient Modules Excluded · Clinic Workflow Edition</span>
+        <span>Powered by Marg ERP 9+ (A1+) · Outpatient Clinic &amp; Apothecary Suite</span>
+        <span>No Hospital Size Clutter · Clinic Staff &amp; Dispensary Only</span>
       </div>
     </div>
   );
@@ -343,6 +424,8 @@ export const StaffAccessManagerPanel: React.FC = () => {
             >
               <option value="doctor">Doctor (Consultation &amp; Rx Approval)</option>
               <option value="pharmacist">Medicine Seller (Pharmacy POS)</option>
+              <option value="receptionist">Receptionist (Patient Intake &amp; Triage)</option>
+              <option value="accountant">Accountant (Marg Ledger &amp; Cashier)</option>
               <option value="admin">Admin (Full Clinic Control)</option>
             </select>
           </label>
@@ -710,6 +793,10 @@ export const SastechSessionBanner: React.FC<SastechSessionBannerProps> = ({ onNa
       ? 'Medicine Seller'
       : currentStaff.role === 'doctor'
       ? 'Doctor'
+      : currentStaff.role === 'receptionist'
+      ? 'Receptionist'
+      : currentStaff.role === 'accountant'
+      ? 'Accountant'
       : 'Admin';
 
   return (

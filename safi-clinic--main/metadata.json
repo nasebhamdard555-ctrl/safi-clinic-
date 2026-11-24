@@ -1,6 +1,0 @@
-{
-  "name": "Safi Herbal Clinic",
-  "description": "Safi Natural Care Clinic (Herbal, Unani & Naturopathic Clinical Practice in Kabul, Afghanistan). Comprehensive appointments, authentic botanical dispensary, and traditional medicine remedies.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

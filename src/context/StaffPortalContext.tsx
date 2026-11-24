@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type StaffRole = 'admin' | 'doctor' | 'pharmacist';
+export type StaffRole = 'admin' | 'doctor' | 'pharmacist' | 'receptionist' | 'accountant';
 
 export interface StaffAccount {
   id: string;
@@ -84,6 +84,26 @@ const DEFAULT_ACCOUNTS: StaffAccount[] = [
     fullName: 'Dispensary Pharmacist',
     role: 'pharmacist',
     specialtyOrDept: 'Clinical Apothecary & Medicine Counter',
+    active: true,
+    createdAt: '2026-01-01',
+  },
+  {
+    id: 'staff-recep-1',
+    username: 'reception',
+    password: '123',
+    fullName: 'Reception & Triage Desk',
+    role: 'receptionist',
+    specialtyOrDept: 'Patient Intake & Queue Management',
+    active: true,
+    createdAt: '2026-01-01',
+  },
+  {
+    id: 'staff-acct-1',
+    username: 'accountant',
+    password: '123',
+    fullName: 'Mirwais Shinwari',
+    role: 'accountant',
+    specialtyOrDept: 'Marg Accounts & Finance',
     active: true,
     createdAt: '2026-01-01',
   },
