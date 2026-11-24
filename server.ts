@@ -2,15 +2,6 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
-import { desc, eq } from 'drizzle-orm';
-import { db } from './src/db/index.ts';
-import {
-  medicines,
-  patients,
-  patientVisits,
-  transactions,
-  inventoryAlerts,
-} from './src/db/schema.ts';
 import { requireAuth, optionalAuth, AuthRequest } from './src/middleware/auth.ts';
 import {
   getOrCreateUser,
@@ -26,7 +17,12 @@ import {
   getOrSeedClinicSettings,
   updateClinicSettings,
   ensureSeededMedicines,
+  getInventoryAlerts,
+  dispatchLowStockAlerts,
   ensureSeededPatientsAndLedger,
+  getPatientsWithVisits,
+  getPatientByQrToken,
+  getAllTransactions,
   processPharmacyCheckoutAndLedger,
   restockMedicine,
   createPatientProfile,
@@ -61,10 +57,16 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// Initialize GoogleGenAI server-side client
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
+// Lazy GoogleGenAI server-side client
+let cachedAiClient: GoogleGenAI | null = null;
+function getAiClient(): GoogleGenAI {
+  if (!cachedAiClient) {
+    cachedAiClient = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+    });
+  }
+  return cachedAiClient;
+}
 
 // ============================================================================
 // CLINICAL MANAGEMENT, POS PHARMACY, INVENTORY & ACCOUNTING API ROUTES
@@ -96,16 +98,7 @@ app.get('/api/medicines', async (_req, res) => {
   try {
     const settings = await getOrSeedClinicSettings();
     const list = await ensureSeededMedicines();
-    let alerts: any[] = [];
-    try {
-      alerts = await db
-        .select()
-        .from(inventoryAlerts)
-        .orderBy(desc(inventoryAlerts.createdAt))
-        .limit(20);
-    } catch (e) {
-      alerts = [];
-    }
+    const alerts = await getInventoryAlerts(20);
     res.json({
       success: true,
       medicines: list,
@@ -115,13 +108,7 @@ app.get('/api/medicines', async (_req, res) => {
     });
   } catch (err: any) {
     console.error('Error in GET /api/medicines:', err);
-    res.json({
-      success: true,
-      medicines: [],
-      lowStockItems: [],
-      alerts: [],
-      threshold: 20,
-    });
+    res.status(500).json({ error: err.message || 'Failed to load inventory' });
   }
 });
 
@@ -139,26 +126,10 @@ app.post('/api/medicines/:id/restock', async (req, res) => {
 
 app.post('/api/medicines/alerts/dispatch', async (_req, res) => {
   try {
-    const settings = await getOrSeedClinicSettings();
-    const list = await ensureSeededMedicines();
-    const lowItems = list.filter((m) => m.stockQuantity < settings.lowStockThreshold);
-
-    for (const item of lowItems) {
-      await db.insert(inventoryAlerts).values({
-        medicineId: item.id,
-        medicineName: item.name,
-        remainingStock: item.stockQuantity,
-        threshold: settings.lowStockThreshold,
-        alertStatus: 'Email Dispatched to Owner',
-        dispatchedToEmail: settings.ownerAlertEmail,
-      });
-    }
-
+    const result = await dispatchLowStockAlerts();
     res.json({
       success: true,
-      dispatchedTo: settings.ownerAlertEmail,
-      alertCount: lowItems.length,
-      items: lowItems.map((i) => ({ name: i.name, stock: i.stockQuantity })),
+      ...result,
     });
   } catch (err: any) {
     console.error('Error in POST /api/medicines/alerts/dispatch:', err);
@@ -195,19 +166,7 @@ app.post('/api/pos/checkout', optionalAuth, async (req: AuthRequest, res) => {
 // D. Patient CRM & QR Identity Triage
 app.get('/api/patients', async (_req, res) => {
   try {
-    await ensureSeededPatientsAndLedger();
-    const list = await db.select().from(patients).orderBy(desc(patients.id));
-    const visits = await db
-      .select()
-      .from(patientVisits)
-      .orderBy(desc(patientVisits.checkedInAt))
-      .limit(30);
-
-    const enriched = list.map((p) => ({
-      ...p,
-      visits: visits.filter((v) => v.patientId === p.id),
-    }));
-
+    const enriched = await getPatientsWithVisits();
     res.json({ success: true, patients: enriched });
   } catch (err: any) {
     console.error('Error in GET /api/patients:', err);
@@ -231,25 +190,14 @@ app.post('/api/patients', async (req, res) => {
 
 app.get('/api/patients/qr/:token', async (req, res) => {
   try {
-    await ensureSeededPatientsAndLedger();
     const token = req.params.token.trim().toUpperCase();
-    const rows = await db
-      .select()
-      .from(patients)
-      .where(eq(patients.qrCodeToken, token))
-      .limit(1);
+    const patient = await getPatientByQrToken(token);
 
-    if (rows.length === 0) {
+    if (!patient) {
       return res.status(404).json({ error: `No patient found for QR token ${token}` });
     }
 
-    const visits = await db
-      .select()
-      .from(patientVisits)
-      .where(eq(patientVisits.patientId, rows[0].id))
-      .orderBy(desc(patientVisits.checkedInAt));
-
-    res.json({ success: true, patient: { ...rows[0], visits } });
+    res.json({ success: true, patient });
   } catch (err: any) {
     console.error('Error in GET /api/patients/qr/:token:', err);
     res.status(500).json({ error: err.message || 'QR lookup failed' });
@@ -286,10 +234,7 @@ app.get('/api/analytics/summary', async (req, res) => {
     await ensureSeededMedicines();
     await ensureSeededPatientsAndLedger();
 
-    const allTx = await db
-      .select()
-      .from(transactions)
-      .orderBy(desc(transactions.createdAt));
+    const allTx = await getAllTransactions();
 
     const summary = calculatePeriodFinancialSummary(allTx, validPeriod, new Date());
 
@@ -704,7 +649,7 @@ app.post('/api/chat', async (req, res) => {
       config.toolConfig = toolConfig;
     }
 
-    const response = await ai.models.generateContent({
+    const response = await getAiClient().models.generateContent({
       model: selectedModel,
       contents,
       config,
@@ -762,7 +707,7 @@ async function startServer() {
     });
   }
 
-  app.listen(port, () => {
+  app.listen(Number(port), '0.0.0.0', () => {
     console.log(`Safi Natural Care Clinic server running on port ${port}`);
   });
 }

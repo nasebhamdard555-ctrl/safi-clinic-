@@ -1,4 +1,4 @@
-import { db } from './index.ts';
+import { db, isDbOnline, markDbOffline } from './index.ts';
 import {
   glAccounts,
   journalEntries,
@@ -24,289 +24,214 @@ import {
   roundCurrency,
   validateJournalEntry,
 } from '../utils/accountingEngine.ts';
+import { getInMemorySeedTransactions } from './queries.ts';
 
 function formatIsoDate(d: Date = new Date()): string {
   return d.toISOString().slice(0, 10);
 }
 
-/**
- * Ensures the Standard Microsoft Office Accounting 2009 Chart of Accounts,
- * clinical suppliers, opening capital balance, and synced clinic subledgers exist.
- */
-export async function ensureSeededMoa2009() {
-  try {
-    let accounts = await db.select().from(glAccounts).orderBy(asc(glAccounts.accountNumber));
+const STANDARD_COA: Array<{
+  accountNumber: string;
+  name: string;
+  accountType: GlAccountType;
+  description: string;
+  isSystem: boolean;
+}> = [
+  {
+    accountNumber: '1010',
+    name: 'Cash on Hand (Clinic Desk)',
+    accountType: 'Asset',
+    description: 'Physical cash drawer for walk-in consultations & POS counter',
+    isSystem: true,
+  },
+  {
+    accountNumber: '1020',
+    name: 'Main Clinic Checking Bank',
+    accountType: 'Asset',
+    description: 'Primary Safi Natural Care Clinic operating bank account',
+    isSystem: true,
+  },
+  {
+    accountNumber: '1100',
+    name: 'Accounts Receivable',
+    accountType: 'Asset',
+    description: 'Open patient & wholesale customer invoice balances',
+    isSystem: true,
+  },
+  {
+    accountNumber: '1200',
+    name: 'Herbal Inventory Asset',
+    accountType: 'Asset',
+    description: 'Valuation of compounded botanical tinctures, teas, and resins on hand',
+    isSystem: true,
+  },
+  {
+    accountNumber: '2010',
+    name: 'Accounts Payable',
+    accountType: 'Liability',
+    description: 'Unpaid vendor bills for raw herbs, amber bottles, and supplies',
+    isSystem: true,
+  },
+  {
+    accountNumber: '2100',
+    name: 'Dispensary Sales Tax Payable',
+    accountType: 'Liability',
+    description: 'Collected dispensary VAT/sales tax remitted periodically',
+    isSystem: true,
+  },
+  {
+    accountNumber: '3000',
+    name: "Owner's Equity / Capital",
+    accountType: 'Equity',
+    description: 'Initial clinic capital & founder equity investment',
+    isSystem: true,
+  },
+  {
+    accountNumber: '3900',
+    name: 'Retained Earnings',
+    accountType: 'Equity',
+    description: 'Accumulated clinic earnings retained across fiscal periods',
+    isSystem: true,
+  },
+  {
+    accountNumber: '4010',
+    name: 'Clinical Consultation Revenue',
+    accountType: 'Revenue',
+    description: 'Unani, Phytotherapy & Naturopathic outpatient diagnostic fees',
+    isSystem: true,
+  },
+  {
+    accountNumber: '4020',
+    name: 'Herbal Pharmacy Sales',
+    accountType: 'Revenue',
+    description: 'Dispensary POS & online apothecary retail formulations',
+    isSystem: true,
+  },
+  {
+    accountNumber: '5010',
+    name: 'Cost of Botanical Goods Sold',
+    accountType: 'COGS',
+    description: 'Direct compounding & wholesale cost of dispensed remedies',
+    isSystem: true,
+  },
+  {
+    accountNumber: '5100',
+    name: 'Clinic Overhead & Utilities',
+    accountType: 'Expense',
+    description: 'Facility utilities, clinic sterilization & administrative overhead',
+    isSystem: true,
+  },
+  {
+    accountNumber: '5200',
+    name: 'Supplier & Apothecary Expenses',
+    accountType: 'Expense',
+    description: 'Botanical packaging, glassware, and clinical consumable bills',
+    isSystem: true,
+  },
+];
 
-  if (accounts.length === 0) {
-    const standardCoa: Array<{
-      accountNumber: string;
-      name: string;
-      accountType: GlAccountType;
-      description: string;
-      isSystem: boolean;
-    }> = [
-      {
-        accountNumber: '1010',
-        name: 'Cash on Hand (Clinic Desk)',
-        accountType: 'Asset',
-        description: 'Physical cash drawer for walk-in consultations & POS counter',
-        isSystem: true,
-      },
-      {
-        accountNumber: '1020',
-        name: 'Main Clinic Checking Bank',
-        accountType: 'Asset',
-        description: 'Primary Safi Natural Care Clinic operating bank account',
-        isSystem: true,
-      },
-      {
-        accountNumber: '1100',
-        name: 'Accounts Receivable',
-        accountType: 'Asset',
-        description: 'Open patient & wholesale customer invoice balances',
-        isSystem: true,
-      },
-      {
-        accountNumber: '1200',
-        name: 'Herbal Inventory Asset',
-        accountType: 'Asset',
-        description: 'Valuation of compounded botanical tinctures, teas, and resins on hand',
-        isSystem: true,
-      },
-      {
-        accountNumber: '2010',
-        name: 'Accounts Payable',
-        accountType: 'Liability',
-        description: 'Unpaid vendor bills for raw herbs, amber bottles, and supplies',
-        isSystem: true,
-      },
-      {
-        accountNumber: '2100',
-        name: 'Dispensary Sales Tax Payable',
-        accountType: 'Liability',
-        description: 'Collected dispensary VAT/sales tax remitted periodically',
-        isSystem: true,
-      },
-      {
-        accountNumber: '3000',
-        name: "Owner's Equity / Capital",
-        accountType: 'Equity',
-        description: 'Initial clinic capital & founder equity investment',
-        isSystem: true,
-      },
-      {
-        accountNumber: '3900',
-        name: 'Retained Earnings',
-        accountType: 'Equity',
-        description: 'Accumulated clinic earnings retained across fiscal periods',
-        isSystem: true,
-      },
-      {
-        accountNumber: '4010',
-        name: 'Clinical Consultation Revenue',
-        accountType: 'Revenue',
-        description: 'Unani, Phytotherapy & Naturopathic outpatient diagnostic fees',
-        isSystem: true,
-      },
-      {
-        accountNumber: '4020',
-        name: 'Herbal Pharmacy Sales',
-        accountType: 'Revenue',
-        description: 'Dispensary POS & online apothecary retail formulations',
-        isSystem: true,
-      },
-      {
-        accountNumber: '5010',
-        name: 'Cost of Botanical Goods Sold',
-        accountType: 'COGS',
-        description: 'Direct compounding & wholesale cost of dispensed remedies',
-        isSystem: true,
-      },
-      {
-        accountNumber: '5100',
-        name: 'Clinic Overhead & Utilities',
-        accountType: 'Expense',
-        description: 'Facility utilities, clinic sterilization & administrative overhead',
-        isSystem: true,
-      },
-      {
-        accountNumber: '5200',
-        name: 'Supplier & Apothecary Expenses',
-        accountType: 'Expense',
-        description: 'Botanical packaging, glassware, and clinical consumable bills',
-        isSystem: true,
-      },
-    ];
+// ============================================================================
+// IN-MEMORY DOUBLE-ENTRY MOA 2009 LEDGER (Active when PostgreSQL is offline)
+// ============================================================================
 
-    accounts = await db
-      .insert(glAccounts)
-      .values(
-        standardCoa.map((a) => ({
-          accountNumber: a.accountNumber,
-          name: a.name,
-          accountType: a.accountType,
-          normalBalance: getNormalBalanceForType(a.accountType),
-          description: a.description,
-          isSystem: a.isSystem,
-        }))
-      )
-      .returning();
-  }
-
-  let vendorList = await db.select().from(vendors).orderBy(asc(vendors.id));
-  if (vendorList.length === 0) {
-    vendorList = await db
-      .insert(vendors)
-      .values([
-        {
-          name: 'Badakhshan Botanical Cooperative',
-          contactName: 'Fayaz Ahmad Noori',
-          phone: '+93 700 412 880',
-          email: 'supply@badakhshanherbs.af',
-          category: 'Raw Medicinal Herbs',
-          paymentTerms: 'Net 30',
-        },
-        {
-          name: 'Kabul Miron Amber Glassware',
-          contactName: 'Zahir Shah Ahmadi',
-          phone: '+93 799 618 220',
-          email: 'orders@kabulglass.af',
-          category: 'Apothecary Packaging',
-          paymentTerms: 'Net 15',
-        },
-        {
-          name: 'Khorasan Clinical Diagnostics & Linen',
-          contactName: 'Mariam Sadat',
-          phone: '+93 786 330 911',
-          email: 'billing@khorasanmed.af',
-          category: 'Clinic Utilities & Supplies',
-          paymentTerms: 'Due on Receipt',
-        },
-      ])
-      .returning();
-  }
-
-  const existingJournals = await db.select().from(journalEntries).limit(1);
-  if (existingJournals.length === 0) {
-    const today = new Date();
-    const dStr = (daysAgo: number) =>
-      formatIsoDate(new Date(today.getTime() - daysAgo * 86400000));
-
-    // 1. Opening Balance Entry (Balanced: $18,000 DR Assets / $18,000 CR Owner's Capital)
-    await postBalancedJournalEntry({
-      entryNumber: 'JE-1000',
-      entryDate: dStr(25),
-      memo: "Opening Clinical Capital, Cash Drawer & Apothecary Inventory Valuation",
-      sourceModule: 'General Journal',
-      sourceRef: 'OPENING-BALANCE',
-      lines: [
-        {
-          accountNumber: '1020',
-          description: 'Opening Clinic Checking Bank Deposit',
-          debit: 12000,
-          credit: 0,
-        },
-        {
-          accountNumber: '1010',
-          description: 'Opening Reception Cash Float',
-          debit: 1500,
-          credit: 0,
-        },
-        {
-          accountNumber: '1200',
-          description: 'Opening Herbal Dispensary Stock Valuation',
-          debit: 4500,
-          credit: 0,
-        },
-        {
-          accountNumber: '3000',
-          description: "Founder Equity & Initial Capitalization",
-          debit: 0,
-          credit: 18000,
-        },
-      ],
-    });
-
-    // 2. Sync existing centralized transactions into balanced MOA 2009 Journal Entries
-    const existingTx = await db
-      .select()
-      .from(transactions)
-      .orderBy(asc(transactions.createdAt));
-
-    for (const tx of existingTx) {
-      await postClinicTransactionToMoaLedger({
-        sourceRef: tx.referenceNumber,
-        type: tx.type as 'consultation' | 'pharmacy_sale' | 'expense',
-        description: tx.description,
-        patientName: tx.patientName,
-        grossAmount: tx.grossAmount,
-        cogsAmount: tx.cogsAmount,
-        paymentMethod: tx.paymentMethod,
-        entryDate: tx.createdAt ? formatIsoDate(new Date(tx.createdAt)) : dStr(1),
-      });
-    }
-
-    // 3. Seed realistic A/R Customer Invoices (subledger tied to GL 1100 Accounts Receivable)
-    const inv1 = await createArInvoice({
-      customerName: 'Kabul Executive Wellness Corporate Plan',
-      customerEmail: 'hr@kabulcorporate.af',
-      issueDate: dStr(10),
-      dueDate: dStr(-20), // Current
-      subtotal: 420,
-      taxAmount: 0,
-      notes: 'Annual Mizaj & Preventive Phytotherapy Screening (3 Staff)',
-      revenueAccountNumber: '4010',
-    });
-
-    const inv2 = await createArInvoice({
-      customerName: 'Hajji Ahmadullah Stanikzai',
-      customerEmail: 'ahmadullah.s@kabulmail.af',
-      issueDate: dStr(22),
-      dueDate: dStr(8), // 8 days overdue (1-30 bucket)
-      subtotal: 200,
-      taxAmount: 10,
-      notes: 'Extended 60-Day Joint & Respiratory Botanical Regimen',
-      revenueAccountNumber: '4020',
-    });
-    // Record $100 partial payment against inv2 so Status = Partial & Checking has an entry
-    await receiveArInvoicePayment(inv2.id, 100, '1020', dStr(4));
-
-    // 4. Seed realistic A/P Vendor Bills (subledger tied to GL 2010 Accounts Payable)
-    const bill1 = await createApBill({
-      vendorId: vendorList[0].id,
-      billDate: dStr(14),
-      dueDate: dStr(-16), // Current
-      expenseAccountNumber: '1200', // Restocked Herbal Inventory Asset
-      totalAmount: 480,
-      memo: 'Wholesale Harvest: Badakhshan Nigella Sativa & Saffron Extract',
-    });
-
-    const bill2 = await createApBill({
-      vendorId: vendorList[1].id,
-      billDate: dStr(18),
-      dueDate: dStr(3),
-      expenseAccountNumber: '5200',
-      totalAmount: 320,
-      memo: '250x UV-Protected Miron Amber Dropper Bottles & Seals',
-    });
-    await payApBill(bill2.id, 320, '1020', dStr(5));
-
-    void inv1;
-    void bill1;
-  }
-
-  return accounts;
-  } catch (err) {
-    console.warn('[AI Studio] Database offline in ensureSeededMoa2009 — using mock accounting accounts', err);
-    return [];
-  }
+interface MemGlAccount {
+  id: number;
+  accountNumber: string;
+  name: string;
+  accountType: GlAccountType;
+  normalBalance: 'Debit' | 'Credit';
+  description: string | null;
+  isSystem: boolean;
+  createdAt: Date;
 }
 
-/**
- * Posts a validated double-entry Journal Entry atomically into PostgreSQL.
- * Strictly enforces SUM(debit) === SUM(credit).
- */
-export async function postBalancedJournalEntry(input: {
+interface MemJournalEntry {
+  id: number;
+  entryNumber: string;
+  entryDate: string;
+  memo: string;
+  sourceModule: string;
+  sourceRef: string | null;
+  status: string;
+  createdAt: Date;
+}
+
+interface MemJournalLine {
+  id: number;
+  journalEntryId: number;
+  accountId: number;
+  description: string;
+  debit: number;
+  credit: number;
+  reconciled: boolean;
+  reconciliationId: number | null;
+}
+
+interface MemVendor {
+  id: number;
+  name: string;
+  contactName: string | null;
+  phone: string | null;
+  email: string | null;
+  category: string;
+  paymentTerms: string;
+  createdAt: Date;
+}
+
+interface MemArInvoice {
+  id: number;
+  invoiceNumber: string;
+  patientId: number | null;
+  customerName: string;
+  customerEmail: string | null;
+  issueDate: string;
+  dueDate: string;
+  subtotal: number;
+  taxAmount: number;
+  totalAmount: number;
+  amountPaid: number;
+  status: string;
+  notes: string | null;
+  createdAt: Date;
+}
+
+interface MemApBill {
+  id: number;
+  billNumber: string;
+  vendorId: number;
+  vendorName: string;
+  billDate: string;
+  dueDate: string;
+  expenseAccountNumber: string;
+  totalAmount: number;
+  amountPaid: number;
+  status: string;
+  memo: string | null;
+  createdAt: Date;
+}
+
+interface MemBankRec {
+  id: number;
+  accountId: number;
+  statementDate: string;
+  statementEndingBalance: number;
+  clearedBalance: number;
+  difference: number;
+  clearedLineCount: number;
+  status: string;
+  completedAt: Date;
+}
+
+let memSeeded = false;
+let memGlAccounts: MemGlAccount[] = [];
+let memJournalEntries: MemJournalEntry[] = [];
+let memJournalLines: MemJournalLine[] = [];
+let memVendors: MemVendor[] = [];
+let memArInvoices: MemArInvoice[] = [];
+let memApBills: MemApBill[] = [];
+let memBankRecs: MemBankRec[] = [];
+
+function memPostBalancedJournalEntry(input: {
   entryNumber?: string;
   entryDate?: string;
   memo: string;
@@ -319,9 +244,7 @@ export async function postBalancedJournalEntry(input: {
     throw new Error(validation.error || 'Journal entry failed double-entry validation.');
   }
 
-  const accountRows = await db.select().from(glAccounts);
-  const byNumber = new Map(accountRows.map((a) => [a.accountNumber, a]));
-
+  const byNumber = new Map(memGlAccounts.map((a) => [a.accountNumber, a]));
   const resolvedLines: Array<{
     accountId: number;
     description: string;
@@ -333,7 +256,6 @@ export async function postBalancedJournalEntry(input: {
     const dr = roundCurrency(l.debit);
     const cr = roundCurrency(l.credit);
     if (dr === 0 && cr === 0) continue;
-
     const acct = byNumber.get(l.accountNumber);
     if (!acct) {
       throw new Error(`GL Account #${l.accountNumber} does not exist in Chart of Accounts.`);
@@ -346,47 +268,39 @@ export async function postBalancedJournalEntry(input: {
     });
   }
 
-  const entryNumber =
-    input.entryNumber ||
-    `JE-${Date.now().toString().slice(-6)}-${Math.floor(10 + Math.random() * 89)}`;
-  const entryDate = input.entryDate || formatIsoDate(new Date());
+  const entry: MemJournalEntry = {
+    id: memJournalEntries.length + 1,
+    entryNumber:
+      input.entryNumber ||
+      `JE-${Date.now().toString().slice(-6)}-${Math.floor(10 + Math.random() * 89)}`,
+    entryDate: input.entryDate || formatIsoDate(new Date()),
+    memo: input.memo.trim(),
+    sourceModule: input.sourceModule || 'General Journal',
+    sourceRef: input.sourceRef || null,
+    status: 'Posted',
+    createdAt: new Date(),
+  };
+  memJournalEntries.push(entry);
 
-  return await db.transaction(async (tx) => {
-    const [entry] = await tx
-      .insert(journalEntries)
-      .values({
-        entryNumber,
-        entryDate,
-        memo: input.memo.trim(),
-        sourceModule: input.sourceModule || 'General Journal',
-        sourceRef: input.sourceRef || null,
-        status: 'Posted',
-      })
-      .returning();
-
-    const insertedLines = await tx
-      .insert(journalLines)
-      .values(
-        resolvedLines.map((rl) => ({
-          journalEntryId: entry.id,
-          accountId: rl.accountId,
-          description: rl.description,
-          debit: rl.debit,
-          credit: rl.credit,
-          reconciled: false,
-        }))
-      )
-      .returning();
-
-    return { entry, lines: insertedLines };
+  const insertedLines: MemJournalLine[] = resolvedLines.map((rl) => {
+    const line: MemJournalLine = {
+      id: memJournalLines.length + 1,
+      journalEntryId: entry.id,
+      accountId: rl.accountId,
+      description: rl.description,
+      debit: rl.debit,
+      credit: rl.credit,
+      reconciled: false,
+      reconciliationId: null,
+    };
+    memJournalLines.push(line);
+    return line;
   });
+
+  return { entry, lines: insertedLines };
 }
 
-/**
- * Automatically converts clinical consultations, POS pharmacy sales, and online orders
- * into balanced double-entry Journal Entries without affecting caller behavior.
- */
-export async function postClinicTransactionToMoaLedger(input: {
+function buildClinicTxJournalLines(input: {
   sourceRef: string;
   type: 'consultation' | 'pharmacy_sale' | 'expense';
   description: string;
@@ -394,260 +308,258 @@ export async function postClinicTransactionToMoaLedger(input: {
   grossAmount: number;
   cogsAmount: number;
   paymentMethod?: string;
-  entryDate?: string;
-}) {
-  try {
-    const acctCheck = await db.select({ id: glAccounts.id }).from(glAccounts).limit(1);
-    if (acctCheck.length === 0) {
-      return null;
-    }
+}): JournalLineInput[] | null {
+  const gross = roundCurrency(input.grossAmount);
+  const cogs = roundCurrency(input.cogsAmount);
+  if (gross <= 0) return null;
 
-    // Idempotency guard so a given sourceRef never double-posts
-    const existing = await db
-      .select({ id: journalEntries.id })
-      .from(journalEntries)
-      .where(eq(journalEntries.sourceRef, input.sourceRef))
-      .limit(1);
-    if (existing.length > 0) return null;
+  const methodLower = (input.paymentMethod || '').toLowerCase();
+  const cashAccount =
+    methodLower.includes('bank') ||
+    methodLower.includes('online') ||
+    methodLower.includes('card') ||
+    methodLower.includes('telehealth')
+      ? '1020'
+      : '1010';
 
-    const gross = roundCurrency(input.grossAmount);
-    const cogs = roundCurrency(input.cogsAmount);
-    if (gross <= 0) return null;
+  const lines: JournalLineInput[] = [];
 
-    const methodLower = (input.paymentMethod || '').toLowerCase();
-    const cashAccount =
-      methodLower.includes('bank') ||
-      methodLower.includes('online') ||
-      methodLower.includes('card') ||
-      methodLower.includes('telehealth')
-        ? '1020'
-        : '1010';
-
-    const lines: JournalLineInput[] = [];
-
-    if (input.type === 'consultation') {
-      lines.push(
-        {
-          accountNumber: cashAccount,
-          description: `Consultation payment (${input.patientName || 'Patient'})`,
-          debit: gross,
-          credit: 0,
-        },
-        {
-          accountNumber: '4010',
-          description: input.description,
-          debit: 0,
-          credit: gross,
-        }
-      );
-    } else if (input.type === 'pharmacy_sale') {
-      // Split 5% tax if pharmacy sale
-      const netSale = roundCurrency(gross / 1.05);
-      const taxPart = roundCurrency(gross - netSale);
-
-      lines.push({
+  if (input.type === 'consultation') {
+    lines.push(
+      {
         accountNumber: cashAccount,
-        description: `Dispensary receipt (${input.patientName || 'Walk-in'})`,
+        description: `Consultation payment (${input.patientName || 'Patient'})`,
         debit: gross,
         credit: 0,
-      });
-      lines.push({
-        accountNumber: '4020',
+      },
+      {
+        accountNumber: '4010',
         description: input.description,
         debit: 0,
-        credit: netSale,
+        credit: gross,
+      }
+    );
+  } else if (input.type === 'pharmacy_sale') {
+    const netSale = roundCurrency(gross / 1.05);
+    const taxPart = roundCurrency(gross - netSale);
+
+    lines.push({
+      accountNumber: cashAccount,
+      description: `Dispensary receipt (${input.patientName || 'Walk-in'})`,
+      debit: gross,
+      credit: 0,
+    });
+    lines.push({
+      accountNumber: '4020',
+      description: input.description,
+      debit: 0,
+      credit: netSale,
+    });
+    if (taxPart > 0) {
+      lines.push({
+        accountNumber: '2100',
+        description: 'Dispensary Sales Tax Collected (5%)',
+        debit: 0,
+        credit: taxPart,
       });
-      if (taxPart > 0) {
-        lines.push({
-          accountNumber: '2100',
-          description: 'Dispensary Sales Tax Collected (5%)',
-          debit: 0,
-          credit: taxPart,
-        });
-      }
-      if (cogs > 0) {
-        lines.push(
-          {
-            accountNumber: '5010',
-            description: 'Cost of Botanical Goods Sold',
-            debit: cogs,
-            credit: 0,
-          },
-          {
-            accountNumber: '1200',
-            description: 'Inventory asset reduction on sale',
-            debit: 0,
-            credit: cogs,
-          }
-        );
-      }
-    } else {
+    }
+    if (cogs > 0) {
       lines.push(
         {
-          accountNumber: '5200',
-          description: input.description,
-          debit: gross,
+          accountNumber: '5010',
+          description: 'Cost of Botanical Goods Sold',
+          debit: cogs,
           credit: 0,
         },
         {
-          accountNumber: cashAccount,
-          description: 'Expense disbursement',
+          accountNumber: '1200',
+          description: 'Inventory asset reduction on sale',
           debit: 0,
-          credit: gross,
+          credit: cogs,
         }
       );
     }
-
-    return await postBalancedJournalEntry({
-      entryDate: input.entryDate || formatIsoDate(new Date()),
-      memo: `${input.sourceRef} · ${input.description}`,
-      sourceModule: input.type === 'consultation' ? 'Consultation' : 'POS Pharmacy',
-      sourceRef: input.sourceRef,
-      lines,
-    });
-  } catch (err) {
-    console.warn('MOA 2009 journal sync skipped safely:', err);
-    return null;
-  }
-}
-
-export async function getChartOfAccountsWithBalances(): Promise<GlAccountWithTotals[]> {
-  await ensureSeededMoa2009();
-
-  const accounts = await db
-    .select()
-    .from(glAccounts)
-    .orderBy(asc(glAccounts.accountNumber));
-
-  const sums = await db
-    .select({
-      accountId: journalLines.accountId,
-      totalDebits: sql<number>`COALESCE(SUM(${journalLines.debit}), 0)`,
-      totalCredits: sql<number>`COALESCE(SUM(${journalLines.credit}), 0)`,
-    })
-    .from(journalLines)
-    .groupBy(journalLines.accountId);
-
-  const sumMap = new Map(
-    sums.map((s) => [
-      s.accountId,
+  } else {
+    lines.push(
       {
-        totalDebits: roundCurrency(Number(s.totalDebits) || 0),
-        totalCredits: roundCurrency(Number(s.totalCredits) || 0),
+        accountNumber: '5200',
+        description: input.description,
+        debit: gross,
+        credit: 0,
       },
-    ])
-  );
-
-  return accounts.map((a) => {
-    const totals = sumMap.get(a.id) || { totalDebits: 0, totalCredits: 0 };
-    const normalBalance = a.normalBalance as 'Debit' | 'Credit';
-    return {
-      id: a.id,
-      accountNumber: a.accountNumber,
-      name: a.name,
-      accountType: a.accountType as GlAccountType,
-      normalBalance,
-      description: a.description,
-      isSystem: a.isSystem,
-      totalDebits: totals.totalDebits,
-      totalCredits: totals.totalCredits,
-      balance: calculateAccountBalance(normalBalance, totals.totalDebits, totals.totalCredits),
-    };
-  });
-}
-
-export async function createGlAccount(data: {
-  accountNumber: string;
-  name: string;
-  accountType: GlAccountType;
-  description?: string;
-}) {
-  await ensureSeededMoa2009();
-  const cleanNum = data.accountNumber.trim();
-  const cleanName = data.name.trim();
-  if (!cleanNum || !cleanName) {
-    throw new Error('Account Number and Account Name are required.');
+      {
+        accountNumber: cashAccount,
+        description: 'Expense disbursement',
+        debit: 0,
+        credit: gross,
+      }
+    );
   }
 
-  const normalBalance = getNormalBalanceForType(data.accountType);
-  const [inserted] = await db
-    .insert(glAccounts)
-    .values({
-      accountNumber: cleanNum,
-      name: cleanName,
-      accountType: data.accountType,
-      normalBalance,
-      description: data.description?.trim() || null,
-      isSystem: false,
-    })
-    .returning();
-
-  return inserted;
+  return lines;
 }
 
-export async function getJournalEntriesWithLines(limitCount = 60) {
-  await ensureSeededMoa2009();
+function ensureMemMoa2009Seeded() {
+  if (memSeeded) return;
+  memSeeded = true;
 
-  const entries = await db
-    .select()
-    .from(journalEntries)
-    .orderBy(desc(journalEntries.entryDate), desc(journalEntries.id))
-    .limit(limitCount);
+  memGlAccounts = STANDARD_COA.map((a, idx) => ({
+    id: idx + 1,
+    accountNumber: a.accountNumber,
+    name: a.name,
+    accountType: a.accountType,
+    normalBalance: getNormalBalanceForType(a.accountType),
+    description: a.description,
+    isSystem: a.isSystem,
+    createdAt: new Date(),
+  }));
 
-  if (entries.length === 0) return [];
+  memVendors = [
+    {
+      id: 1,
+      name: 'Badakhshan Botanical Cooperative',
+      contactName: 'Fayaz Ahmad Noori',
+      phone: '+93 700 412 880',
+      email: 'supply@badakhshanherbs.af',
+      category: 'Raw Medicinal Herbs',
+      paymentTerms: 'Net 30',
+      createdAt: new Date(),
+    },
+    {
+      id: 2,
+      name: 'Kabul Miron Amber Glassware',
+      contactName: 'Zahir Shah Ahmadi',
+      phone: '+93 799 618 220',
+      email: 'orders@kabulglass.af',
+      category: 'Apothecary Packaging',
+      paymentTerms: 'Net 15',
+      createdAt: new Date(),
+    },
+    {
+      id: 3,
+      name: 'Khorasan Clinical Diagnostics & Linen',
+      contactName: 'Mariam Sadat',
+      phone: '+93 786 330 911',
+      email: 'billing@khorasanmed.af',
+      category: 'Clinic Utilities & Supplies',
+      paymentTerms: 'Due on Receipt',
+      createdAt: new Date(),
+    },
+  ];
 
-  const entryIds = entries.map((e) => e.id);
-  const lines = await db
-    .select({
-      id: journalLines.id,
-      journalEntryId: journalLines.journalEntryId,
-      accountId: journalLines.accountId,
-      accountNumber: glAccounts.accountNumber,
-      accountName: glAccounts.name,
-      description: journalLines.description,
-      debit: journalLines.debit,
-      credit: journalLines.credit,
-      reconciled: journalLines.reconciled,
-      reconciliationId: journalLines.reconciliationId,
-    })
-    .from(journalLines)
-    .innerJoin(glAccounts, eq(journalLines.accountId, glAccounts.id))
-    .where(inArray(journalLines.journalEntryId, entryIds))
-    .orderBy(asc(journalLines.id));
+  const today = new Date();
+  const dStr = (daysAgo: number) =>
+    formatIsoDate(new Date(today.getTime() - daysAgo * 86400000));
 
-  return entries.map((e) => {
-    const entryLines = lines.filter((l) => l.journalEntryId === e.id);
-    const totalDebits = roundCurrency(entryLines.reduce((s, l) => s + l.debit, 0));
-    const totalCredits = roundCurrency(entryLines.reduce((s, l) => s + l.credit, 0));
-    return {
-      ...e,
-      lines: entryLines,
-      totalDebits,
-      totalCredits,
-    };
+  // 1. Opening Balance Entry
+  memPostBalancedJournalEntry({
+    entryNumber: 'JE-1000',
+    entryDate: dStr(25),
+    memo: "Opening Clinical Capital, Cash Drawer & Apothecary Inventory Valuation",
+    sourceModule: 'General Journal',
+    sourceRef: 'OPENING-BALANCE',
+    lines: [
+      {
+        accountNumber: '1020',
+        description: 'Opening Clinic Checking Bank Deposit',
+        debit: 12000,
+        credit: 0,
+      },
+      {
+        accountNumber: '1010',
+        description: 'Opening Reception Cash Float',
+        debit: 1500,
+        credit: 0,
+      },
+      {
+        accountNumber: '1200',
+        description: 'Opening Herbal Dispensary Stock Valuation',
+        debit: 4500,
+        credit: 0,
+      },
+      {
+        accountNumber: '3000',
+        description: 'Founder Equity & Initial Capitalization',
+        debit: 0,
+        credit: 18000,
+      },
+    ],
   });
-}
 
-// ============================================================================
-// CUSTOMERS & ACCOUNTS RECEIVABLE (INVOICING CENTER)
-// ============================================================================
-
-export async function getArInvoicesWithAging() {
-  await ensureSeededMoa2009();
-  const invoices = await db.select().from(arInvoices).orderBy(desc(arInvoices.id));
-  const aging = calculateAgingBuckets(
-    invoices.map((inv) => ({
-      id: inv.id,
-      dueDate: inv.dueDate,
-      totalAmount: inv.totalAmount,
-      amountPaid: inv.amountPaid,
-      status: inv.status,
-    }))
+  // 2. Sync seed clinic transactions into balanced MOA 2009 Journal Entries
+  const seedTxs = getInMemorySeedTransactions().sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   );
-  return { invoices, aging };
+  for (const tx of seedTxs) {
+    const lines = buildClinicTxJournalLines({
+      sourceRef: tx.referenceNumber,
+      type: tx.type,
+      description: tx.description,
+      patientName: tx.patientName,
+      grossAmount: tx.grossAmount,
+      cogsAmount: tx.cogsAmount,
+      paymentMethod: tx.paymentMethod,
+    });
+    if (lines) {
+      memPostBalancedJournalEntry({
+        entryDate: tx.createdAt ? formatIsoDate(new Date(tx.createdAt)) : dStr(1),
+        memo: `${tx.referenceNumber} · ${tx.description}`,
+        sourceModule: tx.type === 'consultation' ? 'Consultation' : 'POS Pharmacy',
+        sourceRef: tx.referenceNumber,
+        lines,
+      });
+    }
+  }
+
+  // 3. Seed realistic A/R Customer Invoices
+  const inv1 = memCreateArInvoice({
+    customerName: 'Kabul Executive Wellness Corporate Plan',
+    customerEmail: 'hr@kabulcorporate.af',
+    issueDate: dStr(10),
+    dueDate: dStr(-20),
+    subtotal: 420,
+    taxAmount: 0,
+    notes: 'Annual Mizaj & Preventive Phytotherapy Screening (3 Staff)',
+    revenueAccountNumber: '4010',
+  });
+
+  const inv2 = memCreateArInvoice({
+    customerName: 'Hajji Ahmadullah Stanikzai',
+    customerEmail: 'ahmadullah.s@kabulmail.af',
+    issueDate: dStr(22),
+    dueDate: dStr(8),
+    subtotal: 200,
+    taxAmount: 10,
+    notes: 'Extended 60-Day Joint & Respiratory Botanical Regimen',
+    revenueAccountNumber: '4020',
+  });
+  memReceiveArInvoicePayment(inv2.id, 100, '1020', dStr(4));
+
+  // 4. Seed realistic A/P Vendor Bills
+  const bill1 = memCreateApBill({
+    vendorId: 1,
+    billDate: dStr(14),
+    dueDate: dStr(-16),
+    expenseAccountNumber: '1200',
+    totalAmount: 480,
+    memo: 'Wholesale Harvest: Badakhshan Nigella Sativa & Saffron Extract',
+  });
+
+  const bill2 = memCreateApBill({
+    vendorId: 2,
+    billDate: dStr(18),
+    dueDate: dStr(3),
+    expenseAccountNumber: '5200',
+    totalAmount: 320,
+    memo: '250x UV-Protected Miron Amber Dropper Bottles & Seals',
+  });
+  memPayApBill(bill2.id, 320, '1020', dStr(5));
+
+  void inv1;
+  void bill1;
 }
 
-export async function createArInvoice(input: {
+function memCreateArInvoice(input: {
   customerName: string;
   customerEmail?: string;
   patientId?: number | null;
@@ -657,11 +569,10 @@ export async function createArInvoice(input: {
   taxAmount?: number;
   notes?: string;
   revenueAccountNumber?: string;
-}) {
+}): MemArInvoice {
   const subtotal = roundCurrency(input.subtotal);
   const taxAmount = roundCurrency(input.taxAmount || 0);
   const totalAmount = roundCurrency(subtotal + taxAmount);
-
   if (subtotal <= 0) throw new Error('Invoice subtotal must be greater than $0.00.');
 
   const issueDate = input.issueDate || formatIsoDate(new Date());
@@ -669,23 +580,23 @@ export async function createArInvoice(input: {
     input.dueDate || formatIsoDate(new Date(Date.now() + 30 * 86400000));
   const invoiceNumber = `INV-${Math.floor(10000 + Math.random() * 89999)}`;
 
-  const [invoice] = await db
-    .insert(arInvoices)
-    .values({
-      invoiceNumber,
-      patientId: input.patientId || null,
-      customerName: input.customerName.trim(),
-      customerEmail: input.customerEmail?.trim() || null,
-      issueDate,
-      dueDate,
-      subtotal,
-      taxAmount,
-      totalAmount,
-      amountPaid: 0,
-      status: 'Open',
-      notes: input.notes?.trim() || null,
-    })
-    .returning();
+  const invoice: MemArInvoice = {
+    id: memArInvoices.length + 1,
+    invoiceNumber,
+    patientId: input.patientId || null,
+    customerName: input.customerName.trim(),
+    customerEmail: input.customerEmail?.trim() || null,
+    issueDate,
+    dueDate,
+    subtotal,
+    taxAmount,
+    totalAmount,
+    amountPaid: 0,
+    status: 'Open',
+    notes: input.notes?.trim() || null,
+    createdAt: new Date(),
+  };
+  memArInvoices.unshift(invoice);
 
   const revAcct = input.revenueAccountNumber || '4010';
   const jeLines: JournalLineInput[] = [
@@ -711,7 +622,7 @@ export async function createArInvoice(input: {
     });
   }
 
-  await postBalancedJournalEntry({
+  memPostBalancedJournalEntry({
     entryDate: issueDate,
     memo: `A/R Invoice ${invoiceNumber} issued to ${invoice.customerName}`,
     sourceModule: 'Invoicing',
@@ -722,39 +633,24 @@ export async function createArInvoice(input: {
   return invoice;
 }
 
-export async function receiveArInvoicePayment(
+function memReceiveArInvoicePayment(
   invoiceId: number,
   paymentAmount: number,
   depositAccountNumber = '1020',
   paymentDate?: string
-) {
-  const rows = await db
-    .select()
-    .from(arInvoices)
-    .where(eq(arInvoices.id, invoiceId))
-    .limit(1);
-  if (rows.length === 0) throw new Error('Invoice not found.');
-  const inv = rows[0];
+): MemArInvoice {
+  const inv = memArInvoices.find((i) => i.id === invoiceId);
+  if (!inv) throw new Error('Invoice not found.');
 
   const remaining = roundCurrency(inv.totalAmount - inv.amountPaid);
   if (remaining <= 0) throw new Error('Invoice is already paid in full.');
 
   const payAmt = roundCurrency(Math.min(remaining, Math.max(0.01, paymentAmount)));
-  const newPaid = roundCurrency(inv.amountPaid + payAmt);
-  const newStatus = newPaid >= inv.totalAmount - 0.009 ? 'Paid' : 'Partial';
+  inv.amountPaid = roundCurrency(inv.amountPaid + payAmt);
+  inv.status = inv.amountPaid >= inv.totalAmount - 0.009 ? 'Paid' : 'Partial';
 
-  const [updated] = await db
-    .update(arInvoices)
-    .set({
-      amountPaid: newPaid,
-      status: newStatus,
-    })
-    .where(eq(arInvoices.id, invoiceId))
-    .returning();
-
-  const dateStr = paymentDate || formatIsoDate(new Date());
-  await postBalancedJournalEntry({
-    entryDate: dateStr,
+  memPostBalancedJournalEntry({
+    entryDate: paymentDate || formatIsoDate(new Date()),
     memo: `Customer Payment Received · ${inv.invoiceNumber} (${inv.customerName})`,
     sourceModule: 'Invoicing',
     sourceRef: `PMT-${inv.invoiceNumber}-${Date.now().toString().slice(-4)}`,
@@ -774,67 +670,19 @@ export async function receiveArInvoicePayment(
     ],
   });
 
-  return updated;
+  return inv;
 }
 
-// ============================================================================
-// VENDORS & ACCOUNTS PAYABLE (BILLS CENTER)
-// ============================================================================
-
-export async function getVendorsAndBillsWithAging() {
-  await ensureSeededMoa2009();
-  const vendorList = await db.select().from(vendors).orderBy(asc(vendors.name));
-  const bills = await db.select().from(apBills).orderBy(desc(apBills.id));
-  const aging = calculateAgingBuckets(
-    bills.map((b) => ({
-      id: b.id,
-      dueDate: b.dueDate,
-      totalAmount: b.totalAmount,
-      amountPaid: b.amountPaid,
-      status: b.status,
-    }))
-  );
-  return { vendors: vendorList, bills, aging };
-}
-
-export async function createVendorRecord(input: {
-  name: string;
-  contactName?: string;
-  phone?: string;
-  email?: string;
-  category?: string;
-  paymentTerms?: string;
-}) {
-  await ensureSeededMoa2009();
-  const [created] = await db
-    .insert(vendors)
-    .values({
-      name: input.name.trim(),
-      contactName: input.contactName?.trim() || null,
-      phone: input.phone?.trim() || null,
-      email: input.email?.trim() || null,
-      category: input.category?.trim() || 'Botanical Supplier',
-      paymentTerms: input.paymentTerms?.trim() || 'Net 30',
-    })
-    .returning();
-  return created;
-}
-
-export async function createApBill(input: {
+function memCreateApBill(input: {
   vendorId: number;
   billDate?: string;
   dueDate?: string;
   expenseAccountNumber: string;
   totalAmount: number;
   memo?: string;
-}) {
-  const vendorRows = await db
-    .select()
-    .from(vendors)
-    .where(eq(vendors.id, input.vendorId))
-    .limit(1);
-  if (vendorRows.length === 0) throw new Error('Selected vendor not found.');
-  const vendor = vendorRows[0];
+}): MemApBill {
+  const vendor = memVendors.find((v) => v.id === input.vendorId);
+  if (!vendor) throw new Error('Selected vendor not found.');
 
   const amount = roundCurrency(input.totalAmount);
   if (amount <= 0) throw new Error('Vendor bill amount must be greater than $0.00.');
@@ -844,23 +692,23 @@ export async function createApBill(input: {
     input.dueDate || formatIsoDate(new Date(Date.now() + 30 * 86400000));
   const billNumber = `BILL-${Math.floor(10000 + Math.random() * 89999)}`;
 
-  const [bill] = await db
-    .insert(apBills)
-    .values({
-      billNumber,
-      vendorId: vendor.id,
-      vendorName: vendor.name,
-      billDate,
-      dueDate,
-      expenseAccountNumber: input.expenseAccountNumber || '5200',
-      totalAmount: amount,
-      amountPaid: 0,
-      status: 'Open',
-      memo: input.memo?.trim() || null,
-    })
-    .returning();
+  const bill: MemApBill = {
+    id: memApBills.length + 1,
+    billNumber,
+    vendorId: vendor.id,
+    vendorName: vendor.name,
+    billDate,
+    dueDate,
+    expenseAccountNumber: input.expenseAccountNumber || '5200',
+    totalAmount: amount,
+    amountPaid: 0,
+    status: 'Open',
+    memo: input.memo?.trim() || null,
+    createdAt: new Date(),
+  };
+  memApBills.unshift(bill);
 
-  await postBalancedJournalEntry({
+  memPostBalancedJournalEntry({
     entryDate: billDate,
     memo: `Vendor Bill ${billNumber} · ${vendor.name}`,
     sourceModule: 'Vendor Bills',
@@ -884,35 +732,24 @@ export async function createApBill(input: {
   return bill;
 }
 
-export async function payApBill(
+function memPayApBill(
   billId: number,
   paymentAmount: number,
   paymentAccountNumber = '1020',
   paymentDate?: string
-) {
-  const rows = await db.select().from(apBills).where(eq(apBills.id, billId)).limit(1);
-  if (rows.length === 0) throw new Error('Vendor bill not found.');
-  const bill = rows[0];
+): MemApBill {
+  const bill = memApBills.find((b) => b.id === billId);
+  if (!bill) throw new Error('Vendor bill not found.');
 
   const remaining = roundCurrency(bill.totalAmount - bill.amountPaid);
   if (remaining <= 0) throw new Error('Vendor bill is already settled.');
 
   const payAmt = roundCurrency(Math.min(remaining, Math.max(0.01, paymentAmount)));
-  const newPaid = roundCurrency(bill.amountPaid + payAmt);
-  const newStatus = newPaid >= bill.totalAmount - 0.009 ? 'Paid' : 'Partial';
+  bill.amountPaid = roundCurrency(bill.amountPaid + payAmt);
+  bill.status = bill.amountPaid >= bill.totalAmount - 0.009 ? 'Paid' : 'Partial';
 
-  const [updated] = await db
-    .update(apBills)
-    .set({
-      amountPaid: newPaid,
-      status: newStatus,
-    })
-    .where(eq(apBills.id, billId))
-    .returning();
-
-  const dateStr = paymentDate || formatIsoDate(new Date());
-  await postBalancedJournalEntry({
-    entryDate: dateStr,
+  memPostBalancedJournalEntry({
+    entryDate: paymentDate || formatIsoDate(new Date()),
     memo: `Bill Payment · ${bill.billNumber} (${bill.vendorName})`,
     sourceModule: 'Vendor Bills',
     sourceRef: `PAYBILL-${bill.billNumber}-${Date.now().toString().slice(-4)}`,
@@ -932,7 +769,967 @@ export async function payApBill(
     ],
   });
 
-  return updated;
+  return bill;
+}
+
+// ============================================================================
+// PUBLIC ACCOUNTING API (PostgreSQL when online, full MOA 2009 in-memory otherwise)
+// ============================================================================
+
+export async function ensureSeededMoa2009() {
+  if (isDbOnline()) {
+    try {
+      let accounts = await db
+        .select()
+        .from(glAccounts)
+        .orderBy(asc(glAccounts.accountNumber));
+
+      if (accounts.length === 0) {
+        accounts = await db
+          .insert(glAccounts)
+          .values(
+            STANDARD_COA.map((a) => ({
+              accountNumber: a.accountNumber,
+              name: a.name,
+              accountType: a.accountType,
+              normalBalance: getNormalBalanceForType(a.accountType),
+              description: a.description,
+              isSystem: a.isSystem,
+            }))
+          )
+          .returning();
+      }
+
+      let vendorList = await db.select().from(vendors).orderBy(asc(vendors.id));
+      if (vendorList.length === 0) {
+        vendorList = await db
+          .insert(vendors)
+          .values([
+            {
+              name: 'Badakhshan Botanical Cooperative',
+              contactName: 'Fayaz Ahmad Noori',
+              phone: '+93 700 412 880',
+              email: 'supply@badakhshanherbs.af',
+              category: 'Raw Medicinal Herbs',
+              paymentTerms: 'Net 30',
+            },
+            {
+              name: 'Kabul Miron Amber Glassware',
+              contactName: 'Zahir Shah Ahmadi',
+              phone: '+93 799 618 220',
+              email: 'orders@kabulglass.af',
+              category: 'Apothecary Packaging',
+              paymentTerms: 'Net 15',
+            },
+            {
+              name: 'Khorasan Clinical Diagnostics & Linen',
+              contactName: 'Mariam Sadat',
+              phone: '+93 786 330 911',
+              email: 'billing@khorasanmed.af',
+              category: 'Clinic Utilities & Supplies',
+              paymentTerms: 'Due on Receipt',
+            },
+          ])
+          .returning();
+      }
+
+      const existingJournals = await db.select().from(journalEntries).limit(1);
+      if (existingJournals.length === 0) {
+        const today = new Date();
+        const dStr = (daysAgo: number) =>
+          formatIsoDate(new Date(today.getTime() - daysAgo * 86400000));
+
+        await postBalancedJournalEntry({
+          entryNumber: 'JE-1000',
+          entryDate: dStr(25),
+          memo: "Opening Clinical Capital, Cash Drawer & Apothecary Inventory Valuation",
+          sourceModule: 'General Journal',
+          sourceRef: 'OPENING-BALANCE',
+          lines: [
+            {
+              accountNumber: '1020',
+              description: 'Opening Clinic Checking Bank Deposit',
+              debit: 12000,
+              credit: 0,
+            },
+            {
+              accountNumber: '1010',
+              description: 'Opening Reception Cash Float',
+              debit: 1500,
+              credit: 0,
+            },
+            {
+              accountNumber: '1200',
+              description: 'Opening Herbal Dispensary Stock Valuation',
+              debit: 4500,
+              credit: 0,
+            },
+            {
+              accountNumber: '3000',
+              description: 'Founder Equity & Initial Capitalization',
+              debit: 0,
+              credit: 18000,
+            },
+          ],
+        });
+
+        const existingTx = await db
+          .select()
+          .from(transactions)
+          .orderBy(asc(transactions.createdAt));
+
+        for (const tx of existingTx) {
+          await postClinicTransactionToMoaLedger({
+            sourceRef: tx.referenceNumber,
+            type: tx.type as 'consultation' | 'pharmacy_sale' | 'expense',
+            description: tx.description,
+            patientName: tx.patientName,
+            grossAmount: tx.grossAmount,
+            cogsAmount: tx.cogsAmount,
+            paymentMethod: tx.paymentMethod,
+            entryDate: tx.createdAt ? formatIsoDate(new Date(tx.createdAt)) : dStr(1),
+          });
+        }
+
+        await createArInvoice({
+          customerName: 'Kabul Executive Wellness Corporate Plan',
+          customerEmail: 'hr@kabulcorporate.af',
+          issueDate: dStr(10),
+          dueDate: dStr(-20),
+          subtotal: 420,
+          taxAmount: 0,
+          notes: 'Annual Mizaj & Preventive Phytotherapy Screening (3 Staff)',
+          revenueAccountNumber: '4010',
+        });
+
+        const inv2 = await createArInvoice({
+          customerName: 'Hajji Ahmadullah Stanikzai',
+          customerEmail: 'ahmadullah.s@kabulmail.af',
+          issueDate: dStr(22),
+          dueDate: dStr(8),
+          subtotal: 200,
+          taxAmount: 10,
+          notes: 'Extended 60-Day Joint & Respiratory Botanical Regimen',
+          revenueAccountNumber: '4020',
+        });
+        await receiveArInvoicePayment(inv2.id, 100, '1020', dStr(4));
+
+        await createApBill({
+          vendorId: vendorList[0].id,
+          billDate: dStr(14),
+          dueDate: dStr(-16),
+          expenseAccountNumber: '1200',
+          totalAmount: 480,
+          memo: 'Wholesale Harvest: Badakhshan Nigella Sativa & Saffron Extract',
+        });
+
+        const bill2 = await createApBill({
+          vendorId: vendorList[1].id,
+          billDate: dStr(18),
+          dueDate: dStr(3),
+          expenseAccountNumber: '5200',
+          totalAmount: 320,
+          memo: '250x UV-Protected Miron Amber Dropper Bottles & Seals',
+        });
+        await payApBill(bill2.id, 320, '1020', dStr(5));
+      }
+
+      return accounts;
+    } catch (err) {
+      markDbOffline(err);
+    }
+  }
+
+  ensureMemMoa2009Seeded();
+  return memGlAccounts;
+}
+
+export async function postBalancedJournalEntry(input: {
+  entryNumber?: string;
+  entryDate?: string;
+  memo: string;
+  sourceModule?: string;
+  sourceRef?: string;
+  lines: JournalLineInput[];
+}) {
+  const validation = validateJournalEntry(input.lines);
+  if (!validation.isValid) {
+    throw new Error(validation.error || 'Journal entry failed double-entry validation.');
+  }
+
+  if (isDbOnline()) {
+    try {
+      const accountRows = await db.select().from(glAccounts);
+      const byNumber = new Map(accountRows.map((a) => [a.accountNumber, a]));
+
+      const resolvedLines: Array<{
+        accountId: number;
+        description: string;
+        debit: number;
+        credit: number;
+      }> = [];
+
+      for (const l of input.lines) {
+        const dr = roundCurrency(l.debit);
+        const cr = roundCurrency(l.credit);
+        if (dr === 0 && cr === 0) continue;
+
+        const acct = byNumber.get(l.accountNumber);
+        if (!acct) {
+          throw new Error(
+            `GL Account #${l.accountNumber} does not exist in Chart of Accounts.`
+          );
+        }
+        resolvedLines.push({
+          accountId: acct.id,
+          description: l.description?.trim() || input.memo,
+          debit: dr,
+          credit: cr,
+        });
+      }
+
+      const entryNumber =
+        input.entryNumber ||
+        `JE-${Date.now().toString().slice(-6)}-${Math.floor(10 + Math.random() * 89)}`;
+      const entryDate = input.entryDate || formatIsoDate(new Date());
+
+      return await db.transaction(async (tx) => {
+        const [entry] = await tx
+          .insert(journalEntries)
+          .values({
+            entryNumber,
+            entryDate,
+            memo: input.memo.trim(),
+            sourceModule: input.sourceModule || 'General Journal',
+            sourceRef: input.sourceRef || null,
+            status: 'Posted',
+          })
+          .returning();
+
+        const insertedLines = await tx
+          .insert(journalLines)
+          .values(
+            resolvedLines.map((rl) => ({
+              journalEntryId: entry.id,
+              accountId: rl.accountId,
+              description: rl.description,
+              debit: rl.debit,
+              credit: rl.credit,
+              reconciled: false,
+            }))
+          )
+          .returning();
+
+        return { entry, lines: insertedLines };
+      });
+    } catch (err: any) {
+      if (err?.message?.includes('GL Account #')) throw err;
+      markDbOffline(err);
+    }
+  }
+
+  ensureMemMoa2009Seeded();
+  return memPostBalancedJournalEntry(input);
+}
+
+export async function postClinicTransactionToMoaLedger(input: {
+  sourceRef: string;
+  type: 'consultation' | 'pharmacy_sale' | 'expense';
+  description: string;
+  patientName?: string | null;
+  grossAmount: number;
+  cogsAmount: number;
+  paymentMethod?: string;
+  entryDate?: string;
+}) {
+  const lines = buildClinicTxJournalLines(input);
+  if (!lines) return null;
+
+  if (isDbOnline()) {
+    try {
+      const acctCheck = await db.select({ id: glAccounts.id }).from(glAccounts).limit(1);
+      if (acctCheck.length === 0) return null;
+
+      const existing = await db
+        .select({ id: journalEntries.id })
+        .from(journalEntries)
+        .where(eq(journalEntries.sourceRef, input.sourceRef))
+        .limit(1);
+      if (existing.length > 0) return null;
+
+      return await postBalancedJournalEntry({
+        entryDate: input.entryDate || formatIsoDate(new Date()),
+        memo: `${input.sourceRef} · ${input.description}`,
+        sourceModule: input.type === 'consultation' ? 'Consultation' : 'POS Pharmacy',
+        sourceRef: input.sourceRef,
+        lines,
+      });
+    } catch (err) {
+      markDbOffline(err);
+    }
+  }
+
+  ensureMemMoa2009Seeded();
+  if (memJournalEntries.some((e) => e.sourceRef === input.sourceRef)) {
+    return null;
+  }
+
+  return memPostBalancedJournalEntry({
+    entryDate: input.entryDate || formatIsoDate(new Date()),
+    memo: `${input.sourceRef} · ${input.description}`,
+    sourceModule: input.type === 'consultation' ? 'Consultation' : 'POS Pharmacy',
+    sourceRef: input.sourceRef,
+    lines,
+  });
+}
+
+export async function getChartOfAccountsWithBalances(): Promise<GlAccountWithTotals[]> {
+  await ensureSeededMoa2009();
+
+  if (isDbOnline()) {
+    try {
+      const accounts = await db
+        .select()
+        .from(glAccounts)
+        .orderBy(asc(glAccounts.accountNumber));
+
+      const sums = await db
+        .select({
+          accountId: journalLines.accountId,
+          totalDebits: sql<number>`COALESCE(SUM(${journalLines.debit}), 0)`,
+          totalCredits: sql<number>`COALESCE(SUM(${journalLines.credit}), 0)`,
+        })
+        .from(journalLines)
+        .groupBy(journalLines.accountId);
+
+      const sumMap = new Map(
+        sums.map((s) => [
+          s.accountId,
+          {
+            totalDebits: roundCurrency(Number(s.totalDebits) || 0),
+            totalCredits: roundCurrency(Number(s.totalCredits) || 0),
+          },
+        ])
+      );
+
+      return accounts.map((a) => {
+        const totals = sumMap.get(a.id) || { totalDebits: 0, totalCredits: 0 };
+        const normalBalance = a.normalBalance as 'Debit' | 'Credit';
+        return {
+          id: a.id,
+          accountNumber: a.accountNumber,
+          name: a.name,
+          accountType: a.accountType as GlAccountType,
+          normalBalance,
+          description: a.description,
+          isSystem: a.isSystem,
+          totalDebits: totals.totalDebits,
+          totalCredits: totals.totalCredits,
+          balance: calculateAccountBalance(
+            normalBalance,
+            totals.totalDebits,
+            totals.totalCredits
+          ),
+        };
+      });
+    } catch (err) {
+      markDbOffline(err);
+    }
+  }
+
+  ensureMemMoa2009Seeded();
+  const sumMap = new Map<number, { totalDebits: number; totalCredits: number }>();
+  for (const line of memJournalLines) {
+    const prev = sumMap.get(line.accountId) || { totalDebits: 0, totalCredits: 0 };
+    prev.totalDebits = roundCurrency(prev.totalDebits + line.debit);
+    prev.totalCredits = roundCurrency(prev.totalCredits + line.credit);
+    sumMap.set(line.accountId, prev);
+  }
+
+  return [...memGlAccounts]
+    .sort((a, b) => a.accountNumber.localeCompare(b.accountNumber))
+    .map((a) => {
+      const totals = sumMap.get(a.id) || { totalDebits: 0, totalCredits: 0 };
+      return {
+        id: a.id,
+        accountNumber: a.accountNumber,
+        name: a.name,
+        accountType: a.accountType,
+        normalBalance: a.normalBalance,
+        description: a.description,
+        isSystem: a.isSystem,
+        totalDebits: totals.totalDebits,
+        totalCredits: totals.totalCredits,
+        balance: calculateAccountBalance(
+          a.normalBalance,
+          totals.totalDebits,
+          totals.totalCredits
+        ),
+      };
+    });
+}
+
+export async function createGlAccount(data: {
+  accountNumber: string;
+  name: string;
+  accountType: GlAccountType;
+  description?: string;
+}) {
+  await ensureSeededMoa2009();
+  const cleanNum = data.accountNumber.trim();
+  const cleanName = data.name.trim();
+  if (!cleanNum || !cleanName) {
+    throw new Error('Account Number and Account Name are required.');
+  }
+
+  const normalBalance = getNormalBalanceForType(data.accountType);
+
+  if (isDbOnline()) {
+    try {
+      const [inserted] = await db
+        .insert(glAccounts)
+        .values({
+          accountNumber: cleanNum,
+          name: cleanName,
+          accountType: data.accountType,
+          normalBalance,
+          description: data.description?.trim() || null,
+          isSystem: false,
+        })
+        .returning();
+      return inserted;
+    } catch (err) {
+      markDbOffline(err);
+    }
+  }
+
+  ensureMemMoa2009Seeded();
+  if (memGlAccounts.some((a) => a.accountNumber === cleanNum)) {
+    throw new Error(`Account #${cleanNum} already exists.`);
+  }
+  const inserted: MemGlAccount = {
+    id: memGlAccounts.length + 1,
+    accountNumber: cleanNum,
+    name: cleanName,
+    accountType: data.accountType,
+    normalBalance,
+    description: data.description?.trim() || null,
+    isSystem: false,
+    createdAt: new Date(),
+  };
+  memGlAccounts.push(inserted);
+  return inserted;
+}
+
+export async function getJournalEntriesWithLines(limitCount = 60) {
+  await ensureSeededMoa2009();
+
+  if (isDbOnline()) {
+    try {
+      const entries = await db
+        .select()
+        .from(journalEntries)
+        .orderBy(desc(journalEntries.entryDate), desc(journalEntries.id))
+        .limit(limitCount);
+
+      if (entries.length === 0) return [];
+
+      const entryIds = entries.map((e) => e.id);
+      const lines = await db
+        .select({
+          id: journalLines.id,
+          journalEntryId: journalLines.journalEntryId,
+          accountId: journalLines.accountId,
+          accountNumber: glAccounts.accountNumber,
+          accountName: glAccounts.name,
+          description: journalLines.description,
+          debit: journalLines.debit,
+          credit: journalLines.credit,
+          reconciled: journalLines.reconciled,
+          reconciliationId: journalLines.reconciliationId,
+        })
+        .from(journalLines)
+        .innerJoin(glAccounts, eq(journalLines.accountId, glAccounts.id))
+        .where(inArray(journalLines.journalEntryId, entryIds))
+        .orderBy(asc(journalLines.id));
+
+      return entries.map((e) => {
+        const entryLines = lines.filter((l) => l.journalEntryId === e.id);
+        const totalDebits = roundCurrency(
+          entryLines.reduce((s, l) => s + l.debit, 0)
+        );
+        const totalCredits = roundCurrency(
+          entryLines.reduce((s, l) => s + l.credit, 0)
+        );
+        return { ...e, lines: entryLines, totalDebits, totalCredits };
+      });
+    } catch (err) {
+      markDbOffline(err);
+    }
+  }
+
+  ensureMemMoa2009Seeded();
+  const acctMap = new Map(memGlAccounts.map((a) => [a.id, a]));
+  const sortedEntries = [...memJournalEntries]
+    .sort((a, b) => {
+      const d = b.entryDate.localeCompare(a.entryDate);
+      return d !== 0 ? d : b.id - a.id;
+    })
+    .slice(0, limitCount);
+
+  return sortedEntries.map((e) => {
+    const entryLines = memJournalLines
+      .filter((l) => l.journalEntryId === e.id)
+      .map((l) => {
+        const acct = acctMap.get(l.accountId);
+        return {
+          ...l,
+          accountNumber: acct?.accountNumber || '0000',
+          accountName: acct?.name || 'Unknown Account',
+        };
+      });
+    const totalDebits = roundCurrency(entryLines.reduce((s, l) => s + l.debit, 0));
+    const totalCredits = roundCurrency(entryLines.reduce((s, l) => s + l.credit, 0));
+    return { ...e, lines: entryLines, totalDebits, totalCredits };
+  });
+}
+
+// ============================================================================
+// CUSTOMERS & ACCOUNTS RECEIVABLE (INVOICING CENTER)
+// ============================================================================
+
+export async function getArInvoicesWithAging() {
+  await ensureSeededMoa2009();
+
+  if (isDbOnline()) {
+    try {
+      const invoices = await db
+        .select()
+        .from(arInvoices)
+        .orderBy(desc(arInvoices.id));
+      const aging = calculateAgingBuckets(
+        invoices.map((inv) => ({
+          id: inv.id,
+          dueDate: inv.dueDate,
+          totalAmount: inv.totalAmount,
+          amountPaid: inv.amountPaid,
+          status: inv.status,
+        }))
+      );
+      return { invoices, aging };
+    } catch (err) {
+      markDbOffline(err);
+    }
+  }
+
+  ensureMemMoa2009Seeded();
+  const aging = calculateAgingBuckets(
+    memArInvoices.map((inv) => ({
+      id: inv.id,
+      dueDate: inv.dueDate,
+      totalAmount: inv.totalAmount,
+      amountPaid: inv.amountPaid,
+      status: inv.status,
+    }))
+  );
+  return { invoices: memArInvoices, aging };
+}
+
+export async function createArInvoice(input: {
+  customerName: string;
+  customerEmail?: string;
+  patientId?: number | null;
+  issueDate?: string;
+  dueDate?: string;
+  subtotal: number;
+  taxAmount?: number;
+  notes?: string;
+  revenueAccountNumber?: string;
+}) {
+  if (isDbOnline()) {
+    try {
+      const subtotal = roundCurrency(input.subtotal);
+      const taxAmount = roundCurrency(input.taxAmount || 0);
+      const totalAmount = roundCurrency(subtotal + taxAmount);
+
+      if (subtotal <= 0)
+        throw new Error('Invoice subtotal must be greater than $0.00.');
+
+      const issueDate = input.issueDate || formatIsoDate(new Date());
+      const dueDate =
+        input.dueDate || formatIsoDate(new Date(Date.now() + 30 * 86400000));
+      const invoiceNumber = `INV-${Math.floor(10000 + Math.random() * 89999)}`;
+
+      const [invoice] = await db
+        .insert(arInvoices)
+        .values({
+          invoiceNumber,
+          patientId: input.patientId || null,
+          customerName: input.customerName.trim(),
+          customerEmail: input.customerEmail?.trim() || null,
+          issueDate,
+          dueDate,
+          subtotal,
+          taxAmount,
+          totalAmount,
+          amountPaid: 0,
+          status: 'Open',
+          notes: input.notes?.trim() || null,
+        })
+        .returning();
+
+      const revAcct = input.revenueAccountNumber || '4010';
+      const jeLines: JournalLineInput[] = [
+        {
+          accountNumber: '1100',
+          description: `Invoice ${invoiceNumber} · ${invoice.customerName}`,
+          debit: totalAmount,
+          credit: 0,
+        },
+        {
+          accountNumber: revAcct,
+          description: `Billed clinical/dispensary revenue (${invoiceNumber})`,
+          debit: 0,
+          credit: subtotal,
+        },
+      ];
+      if (taxAmount > 0) {
+        jeLines.push({
+          accountNumber: '2100',
+          description: `Sales tax on ${invoiceNumber}`,
+          debit: 0,
+          credit: taxAmount,
+        });
+      }
+
+      await postBalancedJournalEntry({
+        entryDate: issueDate,
+        memo: `A/R Invoice ${invoiceNumber} issued to ${invoice.customerName}`,
+        sourceModule: 'Invoicing',
+        sourceRef: invoiceNumber,
+        lines: jeLines,
+      });
+
+      return invoice;
+    } catch (err: any) {
+      if (err?.message?.includes('Invoice subtotal')) throw err;
+      markDbOffline(err);
+    }
+  }
+
+  ensureMemMoa2009Seeded();
+  return memCreateArInvoice(input);
+}
+
+export async function receiveArInvoicePayment(
+  invoiceId: number,
+  paymentAmount: number,
+  depositAccountNumber = '1020',
+  paymentDate?: string
+) {
+  if (isDbOnline()) {
+    try {
+      const rows = await db
+        .select()
+        .from(arInvoices)
+        .where(eq(arInvoices.id, invoiceId))
+        .limit(1);
+      if (rows.length === 0) throw new Error('Invoice not found.');
+      const inv = rows[0];
+
+      const remaining = roundCurrency(inv.totalAmount - inv.amountPaid);
+      if (remaining <= 0) throw new Error('Invoice is already paid in full.');
+
+      const payAmt = roundCurrency(
+        Math.min(remaining, Math.max(0.01, paymentAmount))
+      );
+      const newPaid = roundCurrency(inv.amountPaid + payAmt);
+      const newStatus = newPaid >= inv.totalAmount - 0.009 ? 'Paid' : 'Partial';
+
+      const [updated] = await db
+        .update(arInvoices)
+        .set({ amountPaid: newPaid, status: newStatus })
+        .where(eq(arInvoices.id, invoiceId))
+        .returning();
+
+      const dateStr = paymentDate || formatIsoDate(new Date());
+      await postBalancedJournalEntry({
+        entryDate: dateStr,
+        memo: `Customer Payment Received · ${inv.invoiceNumber} (${inv.customerName})`,
+        sourceModule: 'Invoicing',
+        sourceRef: `PMT-${inv.invoiceNumber}-${Date.now().toString().slice(-4)}`,
+        lines: [
+          {
+            accountNumber: depositAccountNumber,
+            description: `Payment from ${inv.customerName}`,
+            debit: payAmt,
+            credit: 0,
+          },
+          {
+            accountNumber: '1100',
+            description: `Reduce A/R for ${inv.invoiceNumber}`,
+            debit: 0,
+            credit: payAmt,
+          },
+        ],
+      });
+
+      return updated;
+    } catch (err: any) {
+      if (
+        err?.message === 'Invoice not found.' ||
+        err?.message === 'Invoice is already paid in full.'
+      ) {
+        throw err;
+      }
+      markDbOffline(err);
+    }
+  }
+
+  ensureMemMoa2009Seeded();
+  return memReceiveArInvoicePayment(
+    invoiceId,
+    paymentAmount,
+    depositAccountNumber,
+    paymentDate
+  );
+}
+
+// ============================================================================
+// VENDORS & ACCOUNTS PAYABLE (BILLS CENTER)
+// ============================================================================
+
+export async function getVendorsAndBillsWithAging() {
+  await ensureSeededMoa2009();
+
+  if (isDbOnline()) {
+    try {
+      const vendorList = await db.select().from(vendors).orderBy(asc(vendors.name));
+      const bills = await db.select().from(apBills).orderBy(desc(apBills.id));
+      const aging = calculateAgingBuckets(
+        bills.map((b) => ({
+          id: b.id,
+          dueDate: b.dueDate,
+          totalAmount: b.totalAmount,
+          amountPaid: b.amountPaid,
+          status: b.status,
+        }))
+      );
+      return { vendors: vendorList, bills, aging };
+    } catch (err) {
+      markDbOffline(err);
+    }
+  }
+
+  ensureMemMoa2009Seeded();
+  const aging = calculateAgingBuckets(
+    memApBills.map((b) => ({
+      id: b.id,
+      dueDate: b.dueDate,
+      totalAmount: b.totalAmount,
+      amountPaid: b.amountPaid,
+      status: b.status,
+    }))
+  );
+  return {
+    vendors: [...memVendors].sort((a, b) => a.name.localeCompare(b.name)),
+    bills: memApBills,
+    aging,
+  };
+}
+
+export async function createVendorRecord(input: {
+  name: string;
+  contactName?: string;
+  phone?: string;
+  email?: string;
+  category?: string;
+  paymentTerms?: string;
+}) {
+  await ensureSeededMoa2009();
+
+  if (isDbOnline()) {
+    try {
+      const [created] = await db
+        .insert(vendors)
+        .values({
+          name: input.name.trim(),
+          contactName: input.contactName?.trim() || null,
+          phone: input.phone?.trim() || null,
+          email: input.email?.trim() || null,
+          category: input.category?.trim() || 'Botanical Supplier',
+          paymentTerms: input.paymentTerms?.trim() || 'Net 30',
+        })
+        .returning();
+      return created;
+    } catch (err) {
+      markDbOffline(err);
+    }
+  }
+
+  ensureMemMoa2009Seeded();
+  const created: MemVendor = {
+    id: memVendors.length + 1,
+    name: input.name.trim(),
+    contactName: input.contactName?.trim() || null,
+    phone: input.phone?.trim() || null,
+    email: input.email?.trim() || null,
+    category: input.category?.trim() || 'Botanical Supplier',
+    paymentTerms: input.paymentTerms?.trim() || 'Net 30',
+    createdAt: new Date(),
+  };
+  memVendors.push(created);
+  return created;
+}
+
+export async function createApBill(input: {
+  vendorId: number;
+  billDate?: string;
+  dueDate?: string;
+  expenseAccountNumber: string;
+  totalAmount: number;
+  memo?: string;
+}) {
+  if (isDbOnline()) {
+    try {
+      const vendorRows = await db
+        .select()
+        .from(vendors)
+        .where(eq(vendors.id, input.vendorId))
+        .limit(1);
+      if (vendorRows.length === 0) throw new Error('Selected vendor not found.');
+      const vendor = vendorRows[0];
+
+      const amount = roundCurrency(input.totalAmount);
+      if (amount <= 0)
+        throw new Error('Vendor bill amount must be greater than $0.00.');
+
+      const billDate = input.billDate || formatIsoDate(new Date());
+      const dueDate =
+        input.dueDate || formatIsoDate(new Date(Date.now() + 30 * 86400000));
+      const billNumber = `BILL-${Math.floor(10000 + Math.random() * 89999)}`;
+
+      const [bill] = await db
+        .insert(apBills)
+        .values({
+          billNumber,
+          vendorId: vendor.id,
+          vendorName: vendor.name,
+          billDate,
+          dueDate,
+          expenseAccountNumber: input.expenseAccountNumber || '5200',
+          totalAmount: amount,
+          amountPaid: 0,
+          status: 'Open',
+          memo: input.memo?.trim() || null,
+        })
+        .returning();
+
+      await postBalancedJournalEntry({
+        entryDate: billDate,
+        memo: `Vendor Bill ${billNumber} · ${vendor.name}`,
+        sourceModule: 'Vendor Bills',
+        sourceRef: billNumber,
+        lines: [
+          {
+            accountNumber: bill.expenseAccountNumber,
+            description:
+              input.memo?.trim() || `Supplier invoice from ${vendor.name}`,
+            debit: amount,
+            credit: 0,
+          },
+          {
+            accountNumber: '2010',
+            description: `Accounts Payable (${vendor.name})`,
+            debit: 0,
+            credit: amount,
+          },
+        ],
+      });
+
+      return bill;
+    } catch (err: any) {
+      if (
+        err?.message === 'Selected vendor not found.' ||
+        err?.message?.includes('Vendor bill amount')
+      ) {
+        throw err;
+      }
+      markDbOffline(err);
+    }
+  }
+
+  ensureMemMoa2009Seeded();
+  return memCreateApBill(input);
+}
+
+export async function payApBill(
+  billId: number,
+  paymentAmount: number,
+  paymentAccountNumber = '1020',
+  paymentDate?: string
+) {
+  if (isDbOnline()) {
+    try {
+      const rows = await db
+        .select()
+        .from(apBills)
+        .where(eq(apBills.id, billId))
+        .limit(1);
+      if (rows.length === 0) throw new Error('Vendor bill not found.');
+      const bill = rows[0];
+
+      const remaining = roundCurrency(bill.totalAmount - bill.amountPaid);
+      if (remaining <= 0) throw new Error('Vendor bill is already settled.');
+
+      const payAmt = roundCurrency(
+        Math.min(remaining, Math.max(0.01, paymentAmount))
+      );
+      const newPaid = roundCurrency(bill.amountPaid + payAmt);
+      const newStatus = newPaid >= bill.totalAmount - 0.009 ? 'Paid' : 'Partial';
+
+      const [updated] = await db
+        .update(apBills)
+        .set({ amountPaid: newPaid, status: newStatus })
+        .where(eq(apBills.id, billId))
+        .returning();
+
+      const dateStr = paymentDate || formatIsoDate(new Date());
+      await postBalancedJournalEntry({
+        entryDate: dateStr,
+        memo: `Bill Payment · ${bill.billNumber} (${bill.vendorName})`,
+        sourceModule: 'Vendor Bills',
+        sourceRef: `PAYBILL-${bill.billNumber}-${Date.now().toString().slice(-4)}`,
+        lines: [
+          {
+            accountNumber: '2010',
+            description: `Settle A/P ${bill.billNumber}`,
+            debit: payAmt,
+            credit: 0,
+          },
+          {
+            accountNumber: paymentAccountNumber,
+            description: `Disbursement to ${bill.vendorName}`,
+            debit: 0,
+            credit: payAmt,
+          },
+        ],
+      });
+
+      return updated;
+    } catch (err: any) {
+      if (
+        err?.message === 'Vendor bill not found.' ||
+        err?.message === 'Vendor bill is already settled.'
+      ) {
+        throw err;
+      }
+      markDbOffline(err);
+    }
+  }
+
+  ensureMemMoa2009Seeded();
+  return memPayApBill(billId, paymentAmount, paymentAccountNumber, paymentDate);
 }
 
 // ============================================================================
@@ -942,30 +1739,95 @@ export async function payApBill(
 export async function getBankRegisterAndReconciliation(accountNumber = '1020') {
   await ensureSeededMoa2009();
 
-  const [acct] = await db
-    .select()
-    .from(glAccounts)
-    .where(eq(glAccounts.accountNumber, accountNumber))
-    .limit(1);
+  if (isDbOnline()) {
+    try {
+      const [acct] = await db
+        .select()
+        .from(glAccounts)
+        .where(eq(glAccounts.accountNumber, accountNumber))
+        .limit(1);
+      if (!acct) throw new Error(`Bank/Cash account #${accountNumber} not found.`);
+
+      const rawLines = await db
+        .select({
+          lineId: journalLines.id,
+          journalEntryId: journalLines.journalEntryId,
+          entryNumber: journalEntries.entryNumber,
+          entryDate: journalEntries.entryDate,
+          memo: journalEntries.memo,
+          sourceModule: journalEntries.sourceModule,
+          debit: journalLines.debit,
+          credit: journalLines.credit,
+          reconciled: journalLines.reconciled,
+          reconciliationId: journalLines.reconciliationId,
+        })
+        .from(journalLines)
+        .innerJoin(
+          journalEntries,
+          eq(journalLines.journalEntryId, journalEntries.id)
+        )
+        .where(eq(journalLines.accountId, acct.id))
+        .orderBy(asc(journalEntries.entryDate), asc(journalLines.id));
+
+      let runningBalance = 0;
+      let previouslyReconciledBalance = 0;
+
+      const registerLines = rawLines.map((row) => {
+        runningBalance = roundCurrency(runningBalance + row.debit - row.credit);
+        if (row.reconciled) {
+          previouslyReconciledBalance = roundCurrency(
+            previouslyReconciledBalance + row.debit - row.credit
+          );
+        }
+        return { ...row, runningBalance };
+      });
+
+      const history = await db
+        .select()
+        .from(bankReconciliations)
+        .where(eq(bankReconciliations.accountId, acct.id))
+        .orderBy(desc(bankReconciliations.completedAt))
+        .limit(10);
+
+      return {
+        account: acct,
+        currentBookBalance: runningBalance,
+        previouslyReconciledBalance,
+        registerLines: [...registerLines].reverse(),
+        history,
+      };
+    } catch (err: any) {
+      if (err?.message?.includes('not found.')) throw err;
+      markDbOffline(err);
+    }
+  }
+
+  ensureMemMoa2009Seeded();
+  const acct = memGlAccounts.find((a) => a.accountNumber === accountNumber);
   if (!acct) throw new Error(`Bank/Cash account #${accountNumber} not found.`);
 
-  const rawLines = await db
-    .select({
-      lineId: journalLines.id,
-      journalEntryId: journalLines.journalEntryId,
-      entryNumber: journalEntries.entryNumber,
-      entryDate: journalEntries.entryDate,
-      memo: journalEntries.memo,
-      sourceModule: journalEntries.sourceModule,
-      debit: journalLines.debit,
-      credit: journalLines.credit,
-      reconciled: journalLines.reconciled,
-      reconciliationId: journalLines.reconciliationId,
+  const entryMap = new Map(memJournalEntries.map((e) => [e.id, e]));
+  const rawLines = memJournalLines
+    .filter((l) => l.accountId === acct.id)
+    .map((l) => {
+      const entry = entryMap.get(l.journalEntryId);
+      return {
+        lineId: l.id,
+        journalEntryId: l.journalEntryId,
+        entryNumber: entry?.entryNumber || 'JE',
+        entryDate: entry?.entryDate || formatIsoDate(new Date()),
+        memo: entry?.memo || l.description,
+        sourceModule: entry?.sourceModule || 'General Journal',
+        debit: l.debit,
+        credit: l.credit,
+        reconciled: l.reconciled,
+        reconciliationId: l.reconciliationId,
+      };
     })
-    .from(journalLines)
-    .innerJoin(journalEntries, eq(journalLines.journalEntryId, journalEntries.id))
-    .where(eq(journalLines.accountId, acct.id))
-    .orderBy(asc(journalEntries.entryDate), asc(journalLines.id));
+    .sort((a, b) => {
+      const d = a.entryDate.localeCompare(b.entryDate);
+      return d !== 0 ? d : a.lineId - b.lineId;
+    });
 
   let runningBalance = 0;
   let previouslyReconciledBalance = 0;
@@ -977,18 +1839,12 @@ export async function getBankRegisterAndReconciliation(accountNumber = '1020') {
         previouslyReconciledBalance + row.debit - row.credit
       );
     }
-    return {
-      ...row,
-      runningBalance,
-    };
+    return { ...row, runningBalance };
   });
 
-  const history = await db
-    .select()
-    .from(bankReconciliations)
-    .where(eq(bankReconciliations.accountId, acct.id))
-    .orderBy(desc(bankReconciliations.completedAt))
-    .limit(10);
+  const history = memBankRecs
+    .filter((r) => r.accountId === acct.id)
+    .slice(0, 10);
 
   return {
     account: acct,
@@ -1024,37 +1880,63 @@ export async function completeBankReconciliation(input: {
     );
   }
 
-  return await db.transaction(async (tx) => {
-    const [rec] = await tx
-      .insert(bankReconciliations)
-      .values({
-        accountId: data.account.id,
-        statementDate: input.statementDate || formatIsoDate(new Date()),
-        statementEndingBalance: check.statementEndingBalance,
-        clearedBalance: check.clearedBalance,
-        difference: check.difference,
-        clearedLineCount: selectedLines.length,
-        status: 'Reconciled',
-      })
-      .returning();
+  if (isDbOnline()) {
+    try {
+      return await db.transaction(async (tx) => {
+        const [rec] = await tx
+          .insert(bankReconciliations)
+          .values({
+            accountId: data.account.id,
+            statementDate: input.statementDate || formatIsoDate(new Date()),
+            statementEndingBalance: check.statementEndingBalance,
+            clearedBalance: check.clearedBalance,
+            difference: check.difference,
+            clearedLineCount: selectedLines.length,
+            status: 'Reconciled',
+          })
+          .returning();
 
-    if (selectedLines.length > 0) {
-      await tx
-        .update(journalLines)
-        .set({
-          reconciled: true,
-          reconciliationId: rec.id,
-        })
-        .where(
-          inArray(
-            journalLines.id,
-            selectedLines.map((s) => s.lineId)
-          )
-        );
+        if (selectedLines.length > 0) {
+          await tx
+            .update(journalLines)
+            .set({ reconciled: true, reconciliationId: rec.id })
+            .where(
+              inArray(
+                journalLines.id,
+                selectedLines.map((s) => s.lineId)
+              )
+            );
+        }
+
+        return rec;
+      });
+    } catch (err) {
+      markDbOffline(err);
     }
+  }
 
-    return rec;
-  });
+  const rec: MemBankRec = {
+    id: memBankRecs.length + 1,
+    accountId: data.account.id,
+    statementDate: input.statementDate || formatIsoDate(new Date()),
+    statementEndingBalance: check.statementEndingBalance,
+    clearedBalance: check.clearedBalance,
+    difference: check.difference,
+    clearedLineCount: selectedLines.length,
+    status: 'Reconciled',
+    completedAt: new Date(),
+  };
+  memBankRecs.unshift(rec);
+
+  const lineIdSet = new Set(selectedLines.map((s) => s.lineId));
+  for (const line of memJournalLines) {
+    if (lineIdSet.has(line.id)) {
+      line.reconciled = true;
+      line.reconciliationId = rec.id;
+    }
+  }
+
+  return rec;
 }
 
 // ============================================================================
