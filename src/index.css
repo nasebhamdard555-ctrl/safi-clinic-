@@ -125,3 +125,83 @@ html[dir='rtl'],
     transition-duration: 0.01ms !important;
   }
 }
+/* SASTECH CLINIC ERP — MARG ERP HIGH-DENSITY DESKTOP UI THEME */
+.clinic-erp {
+  font-family: 'Consolas', 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  color: #111827;
+  background-color: #eef3ee;
+}
+
+.clinic-erp-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #14532d;
+  color: #f0fdf4;
+  border-bottom: 2px solid #052e16;
+}
+
+.clinic-erp-grid {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  color: #111827;
+}
+
+.clinic-erp-grid th {
+  background: #dcfce7;
+  color: #14532d;
+  font-weight: 700;
+  text-align: left;
+  padding: 5px 8px;
+  border: 1px solid #86efac;
+  position: sticky;
+  top: 0;
+  white-space: nowrap;
+}
+
+.clinic-erp-grid td {
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  white-space: nowrap;
+}
+
+.clinic-erp-grid tr.is-selected,
+.clinic-erp-grid tr:hover {
+  background: #166534;
+  color: #ffffff;
+}
+
+.clinic-erp-detail-pane {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border-top: 2px solid #15803d;
+  color: #111827;
+}
+
+.clinic-erp-shortcut-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 6px 10px;
+  background: #1e293b;
+  color: #f8fafc;
+  border-top: 1px solid #0f172a;
+  font-size: 11px;
+}
+
+.clinic-erp-key {
+  background: #facc15;
+  color: #0f172a;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 2px;
+  margin-right: 4px;
+}
