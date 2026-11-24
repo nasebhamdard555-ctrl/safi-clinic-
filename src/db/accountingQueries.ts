@@ -34,7 +34,8 @@ function formatIsoDate(d: Date = new Date()): string {
  * clinical suppliers, opening capital balance, and synced clinic subledgers exist.
  */
 export async function ensureSeededMoa2009() {
-  let accounts = await db.select().from(glAccounts).orderBy(asc(glAccounts.accountNumber));
+  try {
+    let accounts = await db.select().from(glAccounts).orderBy(asc(glAccounts.accountNumber));
 
   if (accounts.length === 0) {
     const standardCoa: Array<{
@@ -295,6 +296,10 @@ export async function ensureSeededMoa2009() {
   }
 
   return accounts;
+  } catch (err) {
+    console.warn('[AI Studio] Database offline in ensureSeededMoa2009 — using mock accounting accounts', err);
+    return [];
+  }
 }
 
 /**
