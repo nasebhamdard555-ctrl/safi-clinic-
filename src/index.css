@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #030a07;
+  --color-forest: #0a2118;
+  --color-forest-2: #12312a;
+  --color-line: #1f4536;
+  --color-gold: #d4af37;
+  --color-gold-2: #f0d77a;
+  --color-cream: #f4f0e6;
+  --color-muted: #9db5a8;
+  --color-danger: #e0705f;
+  --color-ok: #6fcf97;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-cream);
+  font-family: var(--font-sans);
+}
+
+select option {
+  background: var(--color-forest);
+  color: var(--color-cream);
+}
