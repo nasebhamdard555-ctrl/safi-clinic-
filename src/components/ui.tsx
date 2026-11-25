@@ -39,9 +39,9 @@ export function Badge({ tone = 'neutral', children }: { tone?: Tone; children: R
 }
 
 export function toneFor(text: string): Tone {
-  if (/low|cancel|no show|expired|disabled|expense/i.test(text)) return /expense/i.test(text) ? 'gold' : 'danger';
-  if (/complete|in stock|active|paid|checked in|income/i.test(text)) return 'ok';
-  if (/sched|pending/i.test(text)) return 'gold';
+  if (/unpaid|low|cancel|no show|expired|disabled|overdue/i.test(text)) return 'danger';
+  if (/partly|expiring|expense|scheduled|sched|pending/i.test(text)) return 'gold';
+  if (/paid|complete|in stock|active|checked in|income/i.test(text)) return 'ok';
   return 'neutral';
 }
 

@@ -1,13 +1,17 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
-import { Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { ArrowDown, ArrowUp, ArrowUpDown, Download, Pencil, Plus, Receipt, Search, Trash2, UserRound } from 'lucide-react';
 import { store } from '../lib/store';
 import { useCollection } from '../lib/useCollection';
+import { useAuth } from '../lib/auth';
+import { logActivity } from '../lib/activity';
+import { downloadCsv } from '../lib/csv';
 import { nowLocal, today } from '../lib/format';
 import type { Row } from '../lib/types';
 import type { FieldDef, ModuleDef } from '../modules';
+import { ReceiptModal } from '../components/Receipt';
 import { Button, Card, EmptyState, Modal, PageHeader, formatCell, inputCls } from '../components/ui';
 
-function Field({ def, value, onChange }: { def: FieldDef; value: string; onChange: (v: string) => void }) {
+function Field({ def, value, names, onChange }: { def: FieldDef; value: string; names: string[]; onChange: (v: string) => void }) {
   let control: ReactNode;
   if (def.type === 'select') {
     control = (
@@ -17,6 +21,23 @@ function Field({ def, value, onChange }: { def: FieldDef; value: string; onChang
           <option key={o}>{o}</option>
         ))}
       </select>
+    );
+  } else if (def.type === 'patient') {
+    control = (
+      <>
+        <input
+          list="patient-names"
+          className={inputCls}
+          value={value}
+          placeholder="Type a name or pick a registered patient"
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <datalist id="patient-names">
+          {names.map((n) => (
+            <option key={n} value={n} />
+          ))}
+        </datalist>
+      </>
     );
   } else if (def.type === 'textarea') {
     control = <textarea rows={3} className={inputCls} value={value} onChange={(e) => onChange(e.target.value)} />;
@@ -42,20 +63,74 @@ function Field({ def, value, onChange }: { def: FieldDef; value: string; onChang
   );
 }
 
-export function CollectionPage({ mod, header }: { mod: ModuleDef; header?: ReactNode }) {
+interface SortState {
+  key: string;
+  dir: 1 | -1;
+}
+
+export function CollectionPage({
+  mod,
+  header,
+  rowFilter,
+  onOpenPatient,
+}: {
+  mod: ModuleDef;
+  header?: ReactNode;
+  rowFilter?: (row: Row) => boolean;
+  onOpenPatient?: (row: Row) => void;
+}) {
   const { rows, loading, error, reload } = useCollection(mod.collection);
+  const { rows: patientRows } = useCollection('patients');
+  const { user } = useAuth();
   const [query, setQuery] = useState('');
+  const [sort, setSort] = useState<SortState | null>(null);
   const [editing, setEditing] = useState<Row | 'new' | null>(null);
   const [form, setForm] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [receiptRow, setReceiptRow] = useState<Row | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
-  const decorated = useMemo(() => (mod.decorate ? rows.map(mod.decorate) : rows), [rows, mod]);
+  useEffect(() => {
+    if (!toast) return;
+    const t = window.setTimeout(() => setToast(null), 2500);
+    return () => window.clearTimeout(t);
+  }, [toast]);
+
+  const names = useMemo(
+    () => patientRows.map((p) => String(p.fullName ?? '')).filter(Boolean).sort(),
+    [patientRows],
+  );
+
+  const decorated = useMemo(() => {
+    const scoped = rowFilter ? rows.filter(rowFilter) : rows;
+    return mod.decorate ? scoped.map(mod.decorate) : scoped;
+  }, [rows, mod, rowFilter]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return decorated;
     return decorated.filter((r) => mod.searchKeys.some((k) => String(r[k] ?? '').toLowerCase().includes(q)));
   }, [decorated, query, mod]);
+
+  const sorted = useMemo(() => {
+    if (!sort) return filtered;
+    const out = [...filtered];
+    out.sort((a, b) => {
+      const x = a[sort.key];
+      const y = b[sort.key];
+      const nx = Number(x);
+      const ny = Number(y);
+      if (x !== '' && y !== '' && x != null && y != null && !Number.isNaN(nx) && !Number.isNaN(ny)) {
+        return (nx - ny) * sort.dir;
+      }
+      return String(x ?? '').localeCompare(String(y ?? '')) * sort.dir;
+    });
+    return out;
+  }, [filtered, sort]);
+
+  const toggleSort = (key: string) =>
+    setSort((s) => (s && s.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: 1 }));
 
   const openNew = () => {
     const init: Record<string, string> = {};
@@ -97,8 +172,16 @@ export function CollectionPage({ mod, header }: { mod: ModuleDef; header?: React
     });
     setBusy(true);
     try {
-      if (editing === 'new') await store.insert(mod.collection, data);
-      else if (editing) await store.update(mod.collection, editing.id, data);
+      const label = String(data[mod.columns[0].key] || mod.singular);
+      if (editing === 'new') {
+        await store.insert(mod.collection, data);
+        await logActivity(user?.displayName ?? 'Unknown', 'Added', mod.singular, label);
+        setToast(`${mod.singular[0].toUpperCase()}${mod.singular.slice(1)} added.`);
+      } else if (editing) {
+        await store.update(mod.collection, editing.id, data);
+        await logActivity(user?.displayName ?? 'Unknown', 'Updated', mod.singular, label);
+        setToast(`${mod.singular[0].toUpperCase()}${mod.singular.slice(1)} updated.`);
+      }
       setEditing(null);
       await reload();
     } catch (err) {
@@ -112,10 +195,20 @@ export function CollectionPage({ mod, header }: { mod: ModuleDef; header?: React
     if (!window.confirm(`Delete this ${mod.singular}?`)) return;
     try {
       await store.remove(mod.collection, row.id);
+      await logActivity(user?.displayName ?? 'Unknown', 'Deleted', mod.singular, String(row[mod.columns[0].key] ?? mod.singular));
+      setToast(`${mod.singular[0].toUpperCase()}${mod.singular.slice(1)} deleted.`);
       await reload();
     } catch (err) {
       window.alert(err instanceof Error ? err.message : 'Could not delete.');
     }
+  };
+
+  const exportCsv = () => {
+    downloadCsv(
+      `${mod.collection}-${today()}.csv`,
+      mod.columns.map((c) => c.label),
+      sorted.map((r) => mod.columns.map((c) => r[c.key] ?? '')),
+    );
   };
 
   return (
@@ -134,6 +227,9 @@ export function CollectionPage({ mod, header }: { mod: ModuleDef; header?: React
                 className={`${inputCls} pl-9 sm:w-64`}
               />
             </div>
+            <Button variant="ghost" onClick={exportCsv} disabled={sorted.length === 0}>
+              <Download size={16} /> Export CSV
+            </Button>
             <Button onClick={openNew}>
               <Plus size={16} /> Add {mod.singular}
             </Button>
@@ -150,7 +246,18 @@ export function CollectionPage({ mod, header }: { mod: ModuleDef; header?: React
               <tr>
                 {mod.columns.map((c) => (
                   <th key={c.key} className="whitespace-nowrap px-4 py-3 font-medium">
-                    {c.label}
+                    <button
+                      type="button"
+                      onClick={() => toggleSort(c.key)}
+                      className="inline-flex items-center gap-1 uppercase tracking-wider hover:text-gold"
+                    >
+                      {c.label}
+                      {sort?.key === c.key ? (
+                        sort.dir === 1 ? <ArrowUp size={12} /> : <ArrowDown size={12} />
+                      ) : (
+                        <ArrowUpDown size={12} className="opacity-40" />
+                      )}
+                    </button>
                   </th>
                 ))}
                 <th className="px-4 py-3 text-right font-medium">Actions</th>
@@ -164,7 +271,7 @@ export function CollectionPage({ mod, header }: { mod: ModuleDef; header?: React
                   </td>
                 </tr>
               )}
-              {!loading && filtered.length === 0 && (
+              {!loading && sorted.length === 0 && (
                 <tr>
                   <td colSpan={mod.columns.length + 1}>
                     <EmptyState
@@ -173,7 +280,7 @@ export function CollectionPage({ mod, header }: { mod: ModuleDef; header?: React
                   </td>
                 </tr>
               )}
-              {filtered.map((row) => (
+              {sorted.map((row) => (
                 <tr key={row.id} className="border-b border-line/60 hover:bg-gold/5">
                   {mod.columns.map((c) => (
                     <td key={c.key} className="px-4 py-3 align-top">
@@ -181,6 +288,16 @@ export function CollectionPage({ mod, header }: { mod: ModuleDef; header?: React
                     </td>
                   ))}
                   <td className="whitespace-nowrap px-4 py-3 text-right">
+                    {onOpenPatient && (
+                      <button onClick={() => onOpenPatient(row)} className="mr-3 inline-flex items-center gap-1 text-muted hover:text-gold">
+                        <UserRound size={14} /> Profile
+                      </button>
+                    )}
+                    {mod.receiptAmountKey && (
+                      <button onClick={() => setReceiptRow(row)} className="mr-3 inline-flex items-center gap-1 text-muted hover:text-gold">
+                        <Receipt size={14} /> Receipt
+                      </button>
+                    )}
                     <button onClick={() => openEdit(row)} className="mr-3 inline-flex items-center gap-1 text-muted hover:text-gold">
                       <Pencil size={14} /> Edit
                     </button>
@@ -194,7 +311,7 @@ export function CollectionPage({ mod, header }: { mod: ModuleDef; header?: React
           </table>
         </div>
         <div className="border-t border-line px-4 py-2 text-xs text-muted">
-          {filtered.length} of {rows.length} records
+          {sorted.length} of {rows.length} records
         </div>
       </Card>
 
@@ -202,7 +319,7 @@ export function CollectionPage({ mod, header }: { mod: ModuleDef; header?: React
         <Modal title={`${editing === 'new' ? 'Add' : 'Edit'} ${mod.singular}`} onClose={() => setEditing(null)} wide>
           <form onSubmit={save} className="grid gap-4 sm:grid-cols-2">
             {mod.fields.map((f) => (
-              <Field key={f.key} def={f} value={form[f.key] ?? ''} onChange={(v) => setForm((s) => ({ ...s, [f.key]: v }))} />
+              <Field key={f.key} def={f} names={names} value={form[f.key] ?? ''} onChange={(v) => setForm((s) => ({ ...s, [f.key]: v }))} />
             ))}
             {formError && <p className="text-sm text-danger sm:col-span-2">{formError}</p>}
             <div className="flex justify-end gap-2 sm:col-span-2">
@@ -215,6 +332,14 @@ export function CollectionPage({ mod, header }: { mod: ModuleDef; header?: React
             </div>
           </form>
         </Modal>
+      )}
+
+      {receiptRow && <ReceiptModal mod={mod} row={receiptRow} onClose={() => setReceiptRow(null)} />}
+
+      {toast && (
+        <div role="status" className="fixed bottom-5 right-5 z-50 rounded-lg border border-gold/50 bg-forest px-4 py-3 text-sm text-gold shadow-lg">
+          {toast}
+        </div>
       )}
     </div>
   );

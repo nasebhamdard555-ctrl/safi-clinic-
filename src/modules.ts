@@ -5,7 +5,7 @@ export type ColFormat = 'text' | 'money' | 'date' | 'datetime' | 'badge';
 export interface FieldDef {
   key: string;
   label: string;
-  type?: 'text' | 'number' | 'date' | 'datetime-local' | 'textarea' | 'select';
+  type?: 'text' | 'number' | 'date' | 'datetime-local' | 'textarea' | 'select' | 'patient';
   options?: string[];
   required?: boolean;
 }
@@ -25,12 +25,16 @@ export interface ModuleDef {
   columns: ColDef[];
   searchKeys: string[];
   decorate?: (row: Row) => Row;
+  // If set, each row gets a Receipt button that prints the row using this amount field.
+  receiptAmountKey?: string;
+  receiptTitle?: string;
 }
 
 const GENDERS = ['Female', 'Male', 'Other'];
 const BLOOD = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
 const APPT_STATUS = ['Scheduled', 'Checked in', 'Completed', 'Cancelled', 'No show'];
 const PAYMENT = ['Cash', 'Card', 'Mobile transfer'];
+const PAY_STATUS = ['Unpaid', 'Partly paid', 'Paid'];
 const INV_CATEGORY = ['Medicine', 'Consumable', 'Lab supply', 'Equipment'];
 const ACC_TYPE = ['Income', 'Expense'];
 const ACC_CATEGORY = ['Consultation fee', 'Pharmacy sales', 'Lab fee', 'Rent', 'Salaries', 'Utilities', 'Medical supplies', 'Equipment', 'Other'];
@@ -40,7 +44,7 @@ const SHIFT = ['Morning', 'Evening', 'Full day'];
 export const MODULES = {
   patients: {
     title: 'Patients',
-    subtitle: 'Register patients and keep their basic medical details.',
+    subtitle: 'Register patients. Click a name to open the full patient record.',
     singular: 'patient',
     collection: 'patients',
     searchKeys: ['fullName', 'phone'],
@@ -63,17 +67,20 @@ export const MODULES = {
   },
   appointments: {
     title: 'Appointments',
-    subtitle: 'Book, check in and track patient appointments.',
+    subtitle: 'Book, check in and track appointments and their payment.',
     singular: 'appointment',
     collection: 'appointments',
-    searchKeys: ['patientName', 'doctor', 'reason', 'status'],
+    searchKeys: ['patientName', 'doctor', 'reason', 'status', 'paymentStatus'],
+    receiptAmountKey: 'fee',
+    receiptTitle: 'Appointment receipt',
     fields: [
-      { key: 'patientName', label: 'Patient name', required: true },
+      { key: 'patientName', label: 'Patient', type: 'patient', required: true },
       { key: 'doctor', label: 'Doctor' },
       { key: 'date', label: 'Date and time', type: 'datetime-local', required: true },
       { key: 'reason', label: 'Reason' },
       { key: 'status', label: 'Status', type: 'select', options: APPT_STATUS },
       { key: 'fee', label: 'Fee', type: 'number' },
+      { key: 'paymentStatus', label: 'Payment', type: 'select', options: PAY_STATUS },
     ],
     columns: [
       { key: 'date', label: 'When', format: 'datetime' },
@@ -82,18 +89,22 @@ export const MODULES = {
       { key: 'reason', label: 'Reason' },
       { key: 'status', label: 'Status', format: 'badge' },
       { key: 'fee', label: 'Fee', format: 'money' },
+      { key: 'paymentStatus', label: 'Payment', format: 'badge' },
     ],
   },
   consultations: {
     title: 'Consultations',
-    subtitle: 'Record complaints, diagnoses and prescriptions from each visit.',
+    subtitle: 'Record complaints, vitals, diagnoses and prescriptions from each visit.',
     singular: 'consultation',
     collection: 'consultations',
     searchKeys: ['patientName', 'doctor', 'diagnosis'],
     fields: [
-      { key: 'patientName', label: 'Patient name', required: true },
+      { key: 'patientName', label: 'Patient', type: 'patient', required: true },
       { key: 'doctor', label: 'Doctor' },
       { key: 'date', label: 'Visit date', type: 'date', required: true },
+      { key: 'bloodPressure', label: 'Blood pressure (e.g. 120/80)' },
+      { key: 'temperature', label: 'Temperature (°C)' },
+      { key: 'weight', label: 'Weight (kg)' },
       { key: 'complaint', label: 'Complaint', type: 'textarea' },
       { key: 'diagnosis', label: 'Diagnosis' },
       { key: 'prescription', label: 'Prescription', type: 'textarea' },
@@ -110,15 +121,18 @@ export const MODULES = {
   },
   dispensing: {
     title: 'Dispensing',
-    subtitle: 'Record medicines handed to patients and how they paid.',
+    subtitle: 'Record medicines handed to patients, how they paid, and print receipts.',
     singular: 'sale',
     collection: 'dispensing',
-    searchKeys: ['patientName', 'items'],
+    searchKeys: ['patientName', 'items', 'paymentStatus'],
+    receiptAmountKey: 'amount',
+    receiptTitle: 'Pharmacy receipt',
     fields: [
-      { key: 'patientName', label: 'Patient name' },
+      { key: 'patientName', label: 'Patient', type: 'patient' },
       { key: 'items', label: 'Items dispensed', type: 'textarea', required: true },
       { key: 'amount', label: 'Amount', type: 'number' },
       { key: 'paymentMethod', label: 'Payment method', type: 'select', options: PAYMENT },
+      { key: 'paymentStatus', label: 'Payment status', type: 'select', options: PAY_STATUS },
       { key: 'date', label: 'Date', type: 'date', required: true },
     ],
     columns: [
@@ -126,19 +140,25 @@ export const MODULES = {
       { key: 'patientName', label: 'Patient' },
       { key: 'items', label: 'Items' },
       { key: 'paymentMethod', label: 'Payment' },
+      { key: 'paymentStatus', label: 'Status', format: 'badge' },
       { key: 'amount', label: 'Amount', format: 'money' },
     ],
   },
   inventory: {
     title: 'Inventory',
-    subtitle: 'Track clinic stock and get alerts before items run out.',
+    subtitle: 'Track clinic stock, reorder levels and expiry dates.',
     singular: 'item',
     collection: 'inventory',
     searchKeys: ['name', 'category'],
-    decorate: (row: Row) => ({
-      ...row,
-      stockStatus: Number(row.quantity) <= Number(row.reorderLevel) ? 'Low stock' : 'In stock',
-    }),
+    decorate: (row: Row) => {
+      const low = Number(row.quantity) <= Number(row.reorderLevel);
+      const exp = row.expiryDate ? new Date(String(row.expiryDate)).getTime() : null;
+      const now = Date.now();
+      let stockStatus = low ? 'Low stock' : 'In stock';
+      if (exp !== null && exp < now) stockStatus = 'Expired';
+      else if (exp !== null && exp - now < 90 * 86400000) stockStatus = 'Expiring soon';
+      return { ...row, stockStatus };
+    },
     fields: [
       { key: 'name', label: 'Item name', required: true },
       { key: 'category', label: 'Category', type: 'select', options: INV_CATEGORY },
@@ -182,8 +202,8 @@ export const MODULES = {
     ],
   },
   staff: {
-    title: 'Staff',
-    subtitle: 'Clinic team members and their shifts.',
+    title: 'Staff directory',
+    subtitle: 'Clinic team members, roles and shifts.',
     singular: 'staff member',
     collection: 'staff',
     searchKeys: ['fullName', 'role'],

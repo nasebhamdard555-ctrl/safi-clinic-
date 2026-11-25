@@ -45,6 +45,7 @@ export const NAV: NavGroup[] = [
       { page: 'admin:staff-logins', label: 'Staff logins' },
       { page: 'admin:demo', label: 'Demo logins' },
       { page: 'admin:settings', label: 'Clinic settings' },
+      { page: 'admin:activity', label: 'Activity log' },
     ],
   },
 ];
