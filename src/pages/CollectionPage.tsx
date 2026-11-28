@@ -1,11 +1,14 @@
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
-import { ArrowDown, ArrowUp, ArrowUpDown, Download, Pencil, Plus, Receipt, Search, Trash2, UserRound } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { ArrowDown, ArrowUp, ArrowUpDown, Bell, BellRing, Download, Pencil, Plus, Receipt, Search, Trash2, UserRound, X } from 'lucide-react';
 import { store } from '../lib/store';
 import { useCollection } from '../lib/useCollection';
 import { useAuth } from '../lib/auth';
 import { logActivity } from '../lib/activity';
-import { downloadCsv } from '../lib/csv';
-import { nowLocal, today } from '../lib/format';
+import { formatRecordActivitySummary } from '../lib/activityFeed';
+import { buildCollectionCsv, canExportCsv, downloadCsv } from '../lib/csv';
+import { filterCollectionRows, formatShortId } from '../lib/search';
+import { buildReminderMessage, getPatientPhone, hasBeenNotified, isReminderEligible } from '../lib/appointmentReminder';
+import { dateTime, nowLocal, today } from '../lib/format';
 import type { Row } from '../lib/types';
 import type { FieldDef, ModuleDef } from '../modules';
 import { ReceiptModal } from '../components/Receipt';
@@ -73,11 +76,15 @@ export function CollectionPage({
   header,
   rowFilter,
   onOpenPatient,
+  autoOpenNewToken,
+  focusSearchToken,
 }: {
   mod: ModuleDef;
   header?: ReactNode;
   rowFilter?: (row: Row) => boolean;
   onOpenPatient?: (row: Row) => void;
+  autoOpenNewToken?: number;
+  focusSearchToken?: number;
 }) {
   const { rows, loading, error, reload } = useCollection(mod.collection);
   const { rows: patientRows } = useCollection('patients');
@@ -90,6 +97,9 @@ export function CollectionPage({
   const [busy, setBusy] = useState(false);
   const [receiptRow, setReceiptRow] = useState<Row | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const handledNewTokenRef = useRef(0);
+  const handledFocusTokenRef = useRef(0);
 
   useEffect(() => {
     if (!toast) return;
@@ -98,7 +108,7 @@ export function CollectionPage({
   }, [toast]);
 
   const names = useMemo(
-    () => patientRows.map((p) => String(p.fullName ?? '')).filter(Boolean).sort(),
+    () => Array.from(new Set(patientRows.map((p) => String(p.fullName ?? '')).filter(Boolean))).sort(),
     [patientRows],
   );
 
@@ -107,11 +117,10 @@ export function CollectionPage({
     return mod.decorate ? scoped.map(mod.decorate) : scoped;
   }, [rows, mod, rowFilter]);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return decorated;
-    return decorated.filter((r) => mod.searchKeys.some((k) => String(r[k] ?? '').toLowerCase().includes(q)));
-  }, [decorated, query, mod]);
+  const filtered = useMemo(
+    () => filterCollectionRows(decorated, query, mod.searchKeys, patientRows),
+    [decorated, query, mod.searchKeys, patientRows],
+  );
 
   const sorted = useMemo(() => {
     if (!sort) return filtered;
@@ -148,6 +157,21 @@ export function CollectionPage({
     setEditing('new');
   };
 
+  useEffect(() => {
+    if (autoOpenNewToken && autoOpenNewToken !== handledNewTokenRef.current) {
+      handledNewTokenRef.current = autoOpenNewToken;
+      openNew();
+    }
+  }, [autoOpenNewToken]);
+
+  useEffect(() => {
+    if (focusSearchToken && focusSearchToken !== handledFocusTokenRef.current) {
+      handledFocusTokenRef.current = focusSearchToken;
+      searchInputRef.current?.focus();
+      searchInputRef.current?.select();
+    }
+  }, [focusSearchToken]);
+
   const openEdit = (row: Row) => {
     const init: Record<string, string> = {};
     mod.fields.forEach((f) => {
@@ -172,7 +196,8 @@ export function CollectionPage({
     });
     setBusy(true);
     try {
-      const label = String(data[mod.columns[0].key] || mod.singular);
+      const fallback = String(data[mod.columns[0].key] || mod.singular);
+      const label = formatRecordActivitySummary(mod.collection, data, fallback);
       if (editing === 'new') {
         await store.insert(mod.collection, data);
         await logActivity(user?.displayName ?? 'Unknown', 'Added', mod.singular, label);
@@ -195,7 +220,13 @@ export function CollectionPage({
     if (!window.confirm(`Delete this ${mod.singular}?`)) return;
     try {
       await store.remove(mod.collection, row.id);
-      await logActivity(user?.displayName ?? 'Unknown', 'Deleted', mod.singular, String(row[mod.columns[0].key] ?? mod.singular));
+      const fallback = String(row[mod.columns[0].key] ?? mod.singular);
+      await logActivity(
+        user?.displayName ?? 'Unknown',
+        'Deleted',
+        mod.singular,
+        formatRecordActivitySummary(mod.collection, row, fallback),
+      );
       setToast(`${mod.singular[0].toUpperCase()}${mod.singular.slice(1)} deleted.`);
       await reload();
     } catch (err) {
@@ -203,13 +234,46 @@ export function CollectionPage({
     }
   };
 
-  const exportCsv = () => {
-    downloadCsv(
-      `${mod.collection}-${today()}.csv`,
-      mod.columns.map((c) => c.label),
-      sorted.map((r) => mod.columns.map((c) => r[c.key] ?? '')),
-    );
+  const isAdmin = canExportCsv(user?.role);
+  const todayStr = today();
+
+  const notifyAppointment = async (row: Row) => {
+    if (!isReminderEligible(row, todayStr)) return;
+    try {
+      const remindedAt = new Date().toISOString();
+      await store.update('appointments', row.id, { remindedAt });
+      const phone = getPatientPhone(row.patientName, patientRows);
+      const message = buildReminderMessage(row, phone);
+      await logActivity(
+        user?.displayName ?? 'Unknown',
+        'Notified',
+        'appointment',
+        `${String(row.patientName || 'Patient')} (${dateTime(row.date)})`,
+      );
+      await reload();
+      setToast(message);
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : 'Could not send appointment reminder.');
+    }
   };
+
+  const exportCsv = () => {
+    if (!isAdmin || sorted.length === 0) return;
+    const filename = `${mod.collection}-${today()}.csv`;
+    const { headers, rows: exportRows } = buildCollectionCsv(mod, sorted);
+    const ok = downloadCsv(filename, headers, exportRows);
+    if (ok) {
+      void logActivity(user?.displayName ?? 'Unknown', 'Exported', mod.title, `${sorted.length} records (${filename})`);
+      setToast(`Exported ${sorted.length} ${sorted.length === 1 ? 'record' : 'records'} to CSV.`);
+    } else {
+      setToast('Could not export CSV file.');
+    }
+  };
+
+  const hasPatientField = mod.searchKeys.includes('patientName') || mod.collection === 'patients';
+  const searchPlaceholder = hasPatientField
+    ? 'Filter by patient name or ID…'
+    : `Filter ${mod.title.toLowerCase()} by name or ID…`;
 
   return (
     <div>
@@ -219,17 +283,36 @@ export function CollectionPage({
         actions={
           <>
             <div className="relative">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+              <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
               <input
+                ref={searchInputRef}
+                type="text"
+                role="searchbox"
+                aria-label="Filter records by patient name or ID"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={`Search ${mod.title.toLowerCase()}`}
-                className={`${inputCls} pl-9 sm:w-64`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') setQuery('');
+                }}
+                placeholder={searchPlaceholder}
+                className={`${inputCls} pl-9 pr-8 sm:w-72`}
               />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery('')}
+                  aria-label="Clear search"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-gold"
+                >
+                  <X size={14} />
+                </button>
+              )}
             </div>
-            <Button variant="ghost" onClick={exportCsv} disabled={sorted.length === 0}>
-              <Download size={16} /> Export CSV
-            </Button>
+            {isAdmin && (
+              <Button variant="ghost" onClick={exportCsv} disabled={sorted.length === 0}>
+                <Download size={16} /> Export to CSV
+              </Button>
+            )}
             <Button onClick={openNew}>
               <Plus size={16} /> Add {mod.singular}
             </Button>
@@ -244,6 +327,20 @@ export function CollectionPage({
           <table className="w-full text-left text-sm">
             <thead className="border-b border-line bg-ink/40 text-xs uppercase tracking-wider text-muted">
               <tr>
+                <th className="whitespace-nowrap px-4 py-3 font-medium">
+                  <button
+                    type="button"
+                    onClick={() => toggleSort('id')}
+                    className="inline-flex items-center gap-1 uppercase tracking-wider hover:text-gold"
+                  >
+                    ID
+                    {sort?.key === 'id' ? (
+                      sort.dir === 1 ? <ArrowUp size={12} /> : <ArrowDown size={12} />
+                    ) : (
+                      <ArrowUpDown size={12} className="opacity-40" />
+                    )}
+                  </button>
+                </th>
                 {mod.columns.map((c) => (
                   <th key={c.key} className="whitespace-nowrap px-4 py-3 font-medium">
                     <button
@@ -266,28 +363,72 @@ export function CollectionPage({
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={mod.columns.length + 1} className="px-4 py-6 text-muted">
+                  <td colSpan={mod.columns.length + 2} className="px-4 py-6 text-muted">
                     Loading…
                   </td>
                 </tr>
               )}
               {!loading && sorted.length === 0 && (
                 <tr>
-                  <td colSpan={mod.columns.length + 1}>
-                    <EmptyState
-                      text={query ? 'No matches found.' : `No ${mod.title.toLowerCase()} yet. Click “Add ${mod.singular}” to start.`}
-                    />
+                  <td colSpan={mod.columns.length + 2}>
+                    {query.trim() ? (
+                      <div className="px-4 py-10 text-center text-sm text-muted">
+                        <p>No records match “{query.trim()}”.</p>
+                        <button
+                          type="button"
+                          onClick={() => setQuery('')}
+                          className="mt-2 text-xs font-medium text-gold hover:underline"
+                        >
+                          Clear search
+                        </button>
+                      </div>
+                    ) : (
+                      <EmptyState text={`No ${mod.title.toLowerCase()} yet. Click “Add ${mod.singular}” to start.`} />
+                    )}
                   </td>
                 </tr>
               )}
               {sorted.map((row) => (
                 <tr key={row.id} className="border-b border-line/60 hover:bg-gold/5">
+                  <td className="whitespace-nowrap px-4 py-3 align-top font-mono text-xs text-muted" title={row.id}>
+                    {formatShortId(row.id)}
+                  </td>
                   {mod.columns.map((c) => (
                     <td key={c.key} className="px-4 py-3 align-top">
                       {formatCell(row[c.key], c.format)}
                     </td>
                   ))}
                   <td className="whitespace-nowrap px-4 py-3 text-right">
+                    {mod.collection === 'appointments' && (() => {
+                      const notified = hasBeenNotified(row);
+                      const canNotify = isReminderEligible(row, todayStr);
+                      return (
+                        <button
+                          type="button"
+                          disabled={!canNotify}
+                          onClick={() => notifyAppointment(row)}
+                          title={
+                            !canNotify
+                              ? 'Reminders are only available for active upcoming appointments'
+                              : notified
+                                ? `Reminder sent ${dateTime(row.remindedAt)} — click to notify again`
+                                : 'Send upcoming appointment reminder'
+                          }
+                          className={`mr-3 inline-flex items-center gap-1 transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                            notified ? 'font-medium text-gold hover:brightness-110' : 'text-muted hover:text-gold'
+                          }`}
+                        >
+                          {notified ? <BellRing size={14} /> : <Bell size={14} />}
+                          Notify
+                          {notified && (
+                            <span
+                              className="ml-0.5 inline-block h-1.5 w-1.5 rounded-full bg-gold"
+                              aria-label="Reminder sent"
+                            />
+                          )}
+                        </button>
+                      );
+                    })()}
                     {onOpenPatient && (
                       <button onClick={() => onOpenPatient(row)} className="mr-3 inline-flex items-center gap-1 text-muted hover:text-gold">
                         <UserRound size={14} /> Profile
@@ -311,7 +452,8 @@ export function CollectionPage({
           </table>
         </div>
         <div className="border-t border-line px-4 py-2 text-xs text-muted">
-          {sorted.length} of {rows.length} records
+          {sorted.length} of {decorated.length} records
+          {query.trim() ? ` matching “${query.trim()}”` : ''}
         </div>
       </Card>
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, LogOut } from 'lucide-react';
+import { ChevronDown, Keyboard, LogOut } from 'lucide-react';
 import { BRAND } from '../config/brand';
 
 interface NavItem {
@@ -56,9 +56,10 @@ interface TopNavProps {
   isOwner: boolean;
   userName: string;
   onSignOut: () => void;
+  onOpenShortcuts?: () => void;
 }
 
-export function TopNav({ page, go, isOwner, userName, onSignOut }: TopNavProps) {
+export function TopNav({ page, go, isOwner, userName, onSignOut, onOpenShortcuts }: TopNavProps) {
   const [openId, setOpenId] = useState<string | null>(null);
   const ref = useRef<HTMLElement>(null);
 
@@ -131,6 +132,18 @@ export function TopNav({ page, go, isOwner, userName, onSignOut }: TopNavProps) 
             <span className="block text-cream">{userName}</span>
             <span className="block text-muted">{isOwner ? 'Owner' : 'Demo / staff'}</span>
           </span>
+          {onOpenShortcuts && (
+            <button
+              type="button"
+              onClick={onOpenShortcuts}
+              title="Keyboard shortcuts (?)"
+              aria-label="Keyboard shortcuts"
+              className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-2 text-sm text-muted hover:border-gold hover:text-gold"
+            >
+              <Keyboard size={14} />
+              <span className="hidden font-mono text-xs lg:inline">?</span>
+            </button>
+          )}
           <button
             onClick={onSignOut}
             className="inline-flex items-center gap-1 rounded-md border border-line px-3 py-2 text-sm text-cream hover:border-gold hover:text-gold"

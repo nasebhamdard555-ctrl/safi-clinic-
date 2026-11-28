@@ -32,7 +32,7 @@ export interface ModuleDef {
 
 const GENDERS = ['Female', 'Male', 'Other'];
 const BLOOD = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
-const APPT_STATUS = ['Scheduled', 'Checked in', 'Completed', 'Cancelled', 'No show'];
+const APPT_STATUS = ['Pending', 'Confirmed', 'Scheduled', 'Checked in', 'Completed', 'Cancelled', 'No show'];
 const PAYMENT = ['Cash', 'Card', 'Mobile transfer'];
 const PAY_STATUS = ['Unpaid', 'Partly paid', 'Paid'];
 const INV_CATEGORY = ['Medicine', 'Consumable', 'Lab supply', 'Equipment'];
